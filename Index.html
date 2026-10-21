@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ứng dụng Tính Liều Hóa Trị & Liệu Pháp Miễn Dịch</title>
+    <style>
+        :root {
+            --primary-color: #0284c7;
+            --primary-hover: #0369a1;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            --success-bg: #f0fdf4;
+            --success-border: #bbf7d0;
+            --success-text: #166534;
+            --step-bg: #f1f5f9;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-size: 1.75rem;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2.welcome-title {
+            color: var(--primary-color);
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            border: none;
+        }
+
+        .question-text {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: #334155;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .btn-large {
+            background-color: #f1f5f9;
+            color: var(--text-main);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100px;
+        }
+
+        .btn-large:hover {
+            background-color: #e0f2fe;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(2, 132, 199, 0.1);
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            color: var(--text-main);
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
+
+        input, select, textarea {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        .protocol-box {
+            background: var(--step-bg);
+            border: 2px dashed var(--primary-color);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        button.btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
+        }
+
+        button.btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button.btn-secondary {
+            background-color: #475569;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button.btn-back {
+            background-color: transparent;
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        button.btn-back:hover {
+            background-color: #f1f5f9;
+            color: #334155;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        table.dose-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table.dose-table th, table.dose-table td {
+            border: 1px solid #cbd5e1;
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 0.9rem;
+            vertical-align: top;
+        }
+
+        table.dose-table th {
+            background-color: #f1f5f9;
+            font-weight: 600;
+        }
+
+        table.dose-table input.actual-dose-input {
+            width: 80px;
+            padding: 4px 8px;
+            font-size: 0.9rem;
+        }
+
+        .summary-box {
+            background: var(--success-bg);
+            border: 1px solid var(--success-border);
+            color: var(--success-text);
+            padding: 16px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-line;
+            font-size: 0.88rem;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Tính Liều Hóa Trị & Miễn Dịch</h1>
+    </header>
+
+    <!-- MÀN HÌNH 0: CHÀO MỪNG & CHỌN BỆNH LÝ -->
+    <div class="card screen active" id="screenWelcome">
+        <h2 class="welcome-title">Chào mừng Bác sĩ đến với phần mềm tính liều hóa trị!</h2>
+        <div class="question-text">Bạn chọn bệnh lý nào để điều trị?</div>
+        
+        <div class="btn-grid">
+            <button class="btn-large" onclick="goToScreen('screenLungCancer')">
+                <span style="font-size: 1.4rem; margin-bottom: 8px;">🫁</span>
+                Ung thư Phổi
+            </button>
+            <button class="btn-large" onclick="goToScreen('screenHeadNeck')">
+                <span style="font-size: 1.4rem; margin-bottom: 8px;">🗣️</span>
+                Ung thư đầu cổ
+            </button>
+        </div>
+    </div>
+
+    <!-- MÀN HÌNH 1A: CHỌN GIAI ĐOẠN UNG THƯ PHỔI -->
+    <div class="card screen" id="screenLungCancer">
+        <button class="btn-back" onclick="goToScreen('screenWelcome')">← Quay lại</button>
+        <h2 class="welcome-title" style="color: #334155;">Ung thư Phổi</h2>
+        <div class="question-text">Vui lòng chọn giai đoạn / mục đích điều trị:</div>
+
+        <div class="btn-grid" style="grid-template-columns: 1fr;">
+            <button class="btn-large" style="min-height: 70px;" onclick="goToProtocolSelect('Phổi - Tân bổ trợ (Neo Adjuvant)')">
+                Điều trị tân bổ trợ (Neo Adjuvant)
+            </button>
+            <button class="btn-large" style="min-height: 70px;" onclick="goToProtocolSelect('Phổi - Bổ trợ (Adjuvant)')">
+                Điều trị bổ trợ (Adjuvant)
+            </button>
+            <button class="btn-large" style="min-height: 70px;" onclick="goToProtocolSelect('Phổi - Tiến xa/Di căn (Systemic - Recurrent - Advanced - Metastatic)')">
+                Điều trị hệ thống giai đoạn tiến xa - tái phát - di căn (Systemic - Recurrent - Advanced - Metastatic)
+            </button>
+        </div>
+    </div>
+
+    <!-- MÀN HÌNH 1B: CHỌN GIAI ĐOẠN UNG THƯ ĐẦU CỔ -->
+    <div class="card screen" id="screenHeadNeck">
+        <button class="btn-back" onclick="goToScreen('screenWelcome')">← Quay lại</button>
+        <h2 class="welcome-title" style="color: #334155;">Ung thư Đầu Cổ</h2>
+        <div class="question-text">Mục đích điều trị:</div>
+        <div class="btn-grid" style="grid-template-columns: 1fr;">
+            <button class="btn-large" style="min-height: 70px;" onclick="goToProtocolSelect('Đầu Cổ - Hóa xạ đồng thời / Tân bổ trợ')">
+                Điều trị Hóa xạ đồng thời / Tân bổ trợ
+            </button>
+            <button class="btn-large" style="min-height: 70px;" onclick="goToProtocolSelect('Đầu Cổ - Di căn / Tái phát')">
+                Điều trị hệ thống (Tái phát - Di căn)
+            </button>
+        </div>
+    </div>
+
+    <!-- MÀN HÌNH 2: CHỌN PHÁC ĐỒ -->
+    <div class="card screen" id="screenProtocolSelection">
+        <button class="btn-back" onclick="goBackToDiseaseScreen()">← Quay lại chọn giai đoạn</button>
+        <h2>Chọn Phác đồ Điều trị</h2>
+        <div style="background: #e0f2fe; padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600; color: #0369a1;">
+            Hướng điều trị: <span id="lblSelectedPath"></span>
+        </div>
+
+        <div class="protocol-box">
+            <div class="form-group">
+                <label for="protocolSelect" style="font-size: 1rem; color: #0369a1;">Chọn phác đồ hóa trị / miễn dịch cụ thể:</label>
+                <select id="protocolSelect" style="padding: 12px; font-size: 1rem; margin-top: 8px;" onchange="onProtocolSelected()">
+                    <option value="">-- Chọn phác đồ --</option>
+                    <optgroup label="Phác đồ Phối hợp Hóa trị">
+                        <option value="paclitaxel_carboplatin">Paclitaxel + Carboplatin</option>
+                        <option value="cisplatin_gemcitabine">Gemcitabine + Cisplatin</option>
+                        <option value="navelbine_cisplatin">Navelbine (Vinorelbine) IV + Cisplatin</option>
+                        <option value="pemetrexed_cisplatin">Pemetrexed + Cisplatin</option>
+                        <option value="pemetrexed_carboplatin">Pemetrexed + Carboplatin</option>
+                    </optgroup>
+                    <optgroup label="Phác đồ Miễn dịch (IO) & Phối hợp">
+                        <option value="pembrolizumab_mono">Pembrolizumab đơn trị</option>
+                        <option value="pembrolizumab_chemo">Pembrolizumab + Paclitaxel + Carboplatin</option>
+                        <option value="atezolizumab_mono">Atezolizumab đơn trị</option>
+                        <option value="nivolumab_mono">Nivolumab đơn trị</option>
+                    </optgroup>
+                    <optgroup label="Phác đồ Đơn trị Hóa trị">
+                        <option value="pemetrexed_single">Pemetrexed đơn trị</option>
+                        <option value="docetaxel_single">Docetaxel đơn trị</option>
+                        <option value="gemcitabine_single">Gemcitabine đơn trị</option>
+                        <option value="paclitaxel_single">Paclitaxel đơn trị</option>
+                        <option value="navelbine_oral_single">Navelbine uống đơn trị</option>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+        <button class="btn-primary" id="btnNextToStep3" onclick="goToStep3()" disabled style="opacity: 0.6; cursor: not-allowed;">Tiếp tục Nhập Chỉ số Bệnh nhân</button>
+    </div>
+
+    <!-- MÀN HÌNH 3: NHẬP THÔNG TIN BỆNH NHÂN -->
+    <div class="card screen" id="screenPatientInfo">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <button class="btn-back" style="margin-bottom: 0;" onclick="goToScreen('screenProtocolSelection')">← Đổi phác đồ</button>
+            <span id="selectedProtocolDisplay" style="font-weight: 700; color: #0369a1; background: #e0f2fe; padding: 6px 12px; border-radius: 8px;">Phác đồ: --</span>
+        </div>
+
+        <h2>Thông số Bệnh nhân & Khám Lâm Sàng</h2>
+        <div class="form-grid" style="background-color: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <div class="form-group">
+                <label for="cycleNumber">Chu kỳ điều trị:</label>
+                <input type="number" id="cycleNumber" value="1" min="1" style="border-color: var(--primary-color);" oninput="updateSummaryText()">
+            </div>
+            <div class="form-group">
+                <label for="dosePercentage">Tỷ lệ liều thực dùng:</label>
+                <select id="dosePercentage" style="border-color: var(--primary-color);" onchange="calculateAndRender()">
+                    <option value="1">100% Liều</option>
+                    <option value="0.9">90% Liều</option>
+                    <option value="0.85">85% Liều</option>
+                    <option value="0.8">80% Liều</option>
+                    <option value="0.75">75% Liều</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="weight">Cân nặng W (kg):</label>
+                <input type="number" id="weight" step="0.1" value="65" oninput="calculateAndRender()">
+            </div>
+
+            <div class="form-group">
+                <label for="height">Chiều cao H (cm):</label>
+                <input type="number" id="height" step="1" value="155" oninput="calculateAndRender()">
+            </div>
+
+            <div class="form-group">
+                <label for="age">Tuổi:</label>
+                <input type="number" id="age" value="55" oninput="calculateAndRender()">
+            </div>
+
+            <div class="form-group">
+                <label for="gender">Giới tính:</label>
+                <select id="gender" onchange="calculateAndRender()">
+                    <option value="male">Nam</option>
+                    <option value="female" selected>Nữ</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="creatinine">Creatinin máu:</label>
+                <div style="display: flex; gap: 6px;">
+                    <input type="number" id="creatinine" step="1" value="60" style="flex: 2;" oninput="calculateAndRender()">
+                    <select id="creatinineUnit" style="flex: 1;" onchange="calculateAndRender()">
+                        <option value="umol">µmol/L</option>
+                        <option value="mg">mg/dL</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" id="carboplatinAucGroup" style="display: none;">
+                <label for="carboplatinAucValue">Carboplatin AUC (Calvert):</label>
+                <select id="carboplatinAucValue" onchange="calculateAndRender()">
+                    <option value="4">AUC 4</option>
+                    <option value="5" selected>AUC 5</option>
+                    <option value="6">AUC 6</option>
+                </select>
+            </div>
+        </div>
+
+        <h3 style="font-size: 1rem; margin-top: 20px; color: #334155;">Thăm khám lâm sàng trước điều trị</h3>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="clinicalState">Tình trạng chung:</label>
+                <input type="text" id="clinicalState" value="bệnh nhân tỉnh, không sốt, không khó thở, thể trạng trung bình" oninput="updateSummaryText()">
+            </div>
+            <div class="form-group">
+                <label for="heartExam">Tim mạch:</label>
+                <input type="text" id="heartExam" value="tim đều rõ" oninput="updateSummaryText()">
+            </div>
+            <div class="form-group">
+                <label for="lungExam">Hô hấp (Phổi):</label>
+                <input type="text" id="lungExam" value="phổi không nghe ran" oninput="updateSummaryText()">
+            </div>
+            <div class="form-group">
+                <label for="abdomenExam">Tiêu hóa (Bụng):</label>
+                <input type="text" id="abdomenExam" value="bụng mềm, gan lách không lớn" oninput="updateSummaryText()">
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label for="conclusionExam">Kết luận:</label>
+                <input type="text" id="conclusionExam" value="Đủ khả năng điều trị" oninput="updateSummaryText()">
+            </div>
+        </div>
+
+        <h2 style="margin-top: 24px;">Kết quả & Hướng dẫn Điều trị Chi tiết</h2>
+        
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">BMI</div>
+                <div class="metric-value" id="resBmi">-</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">BSA (Du Bois)</div>
+                <div class="metric-value" id="resBsa">-</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">CrCl (Cockcroft-Gault)</div>
+                <div class="metric-value" id="resCrcl">-</div>
+            </div>
+        </div>
+
+        <h3>Bảng Liều Lượng & Hướng dẫn Pha / Truyền</h3>
+        <table class="dose-table">
+            <thead>
+                <tr>
+                    <th>Thuốc & Phác đồ</th>
+                    <th>Liều chuẩn</th>
+                    <th>Liều lý thuyết</th>
+                    <th>Liều thực dùng (Đã áp dụng tỷ lệ)</th>
+                    <th>Hướng dẫn Sử dụng & Lưu ý</th>
+                </tr>
+            </thead>
+            <tbody id="doseTableBody">
+            </tbody>
+        </table>
+
+        <h3>Bản Tóm Tắt Định Dạng Theo Mẫu Y Lệnh</h3>
+        <div class="summary-box" id="summaryTextOutput"></div>
+
+        <div class="action-bar">
+            <button class="btn-secondary" onclick="copySummaryText()">Sao chép Nội dung Y lệnh</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ----- DATA CONFIGURATION -----
+    const drugConfigs = {
+        paclitaxel: { name: "Paclitaxel", type: "bsa", defaultDoseMin: 175, defaultDoseMax: 200, formulaDesc: "175-200mg/m2", dilution: "Pha 250ml-500ml NaCl 0.9% hoặc G5%. Dùng dây không DEHP, màng lọc 0.22 micron.", infusionRate: "Truyền TM trong 3 giờ." },
+        carboplatin: { name: "Carboplatin", type: "calvert", formulaDesc: "AUC × (CrCl + 25)", dilution: "Pha trong 250ml G5% hoặc NaCl 0.9%.", infusionRate: "Truyền TM 30 - 60 phút." },
+        pemetrexed: { name: "Pemetrexed", type: "bsa", defaultDoseMin: 500, defaultDoseMax: 500, formulaDesc: "500mg/m2", dilution: "Hoàn nguyên NaCl 0.9%, pha loãng 100ml NaCl 0.9%.", infusionRate: "Truyền TM 10 phút. Bổ sung Acid Folic & Vit B12." },
+        gemcitabine: { name: "Gemcitabine", type: "bsa", defaultDoseMin: 1000, defaultDoseMax: 1250, formulaDesc: "1000-1250mg/m2", dilution: "Pha tối thiểu 250ml-500ml NaCl 0.9%.", infusionRate: "Truyền TM 30 phút." },
+        cisplatin: { name: "Cisplatin", type: "bsa", defaultDoseMin: 75, defaultDoseMax: 75, formulaDesc: "75mg/m2", dilution: "Pha 500ml NaCl 0.9%. Bắt buộc truyền bù dịch & lợi tiểu.", infusionRate: "Truyền TM 2-4 giờ." },
+        navelbine: { name: "Navelbine IV", type: "bsa", defaultDoseMin: 25, defaultDoseMax: 30, formulaDesc: "25-30mg/m2", dilution: "Pha 50ml-125ml NaCl 0.9%.", infusionRate: "Truyền TM nhanh 6-10 phút, xả đuổi NaCl 0.9%." },
+        navelbine_oral: { name: "Navelbine Uống", type: "bsa", defaultDoseMin: 60, defaultDoseMax: 80, formulaDesc: "60-80mg/m2", dilution: "Viên nang mềm.", infusionRate: "Uống nguyên viên với nước lúc đói (Ngày 1, Ngày 8)." },
+        docetaxel: { name: "Docetaxel", type: "bsa", defaultDoseMin: 75, defaultDoseMax: 75, formulaDesc: "75mg/m2", dilution: "Pha 250ml NaCl 0.9% hoặc G5%.", infusionRate: "Truyền TM 1 giờ (dùng Corticoid dự phòng)." },
+        pembrolizumab: { name: "Pembrolizumab", type: "fixed", fixedDose: 200, formulaDesc: "200 mg cố định", dilution: "Pha loãng túi NaCl 0.9% / G5% (nồng độ 1-9 mg/ml).", infusionRate: "Truyền TM 30 phút qua màng lọc vô trùng." },
+        atezolizumab: { name: "Atezolizumab", type: "fixed", fixedDose: 1200, formulaDesc: "1200 mg cố định", dilution: "Pha loãng túi NaCl 0.9% 250ml.", infusionRate: "Truyền TM 60 phút." },
+        nivolumab: { name: "Nivolumab", type: "fixed", fixedDose: 240, formulaDesc: "240 mg cố định", dilution: "Pha loãng với NaCl 0.9% / G5%.", infusionRate: "Truyền TM 30 phút." }
+    };
+
+    const protocolDrugs = {
+        paclitaxel_carboplatin: ["paclitaxel", "carboplatin"],
+        cisplatin_gemcitabine: ["gemcitabine", "cisplatin"],
+        navelbine_cisplatin: ["navelbine", "cisplatin"],
+        pemetrexed_cisplatin: ["pemetrexed", "cisplatin"],
+        pemetrexed_carboplatin: ["pemetrexed", "carboplatin"],
+        pembrolizumab_mono: ["pembrolizumab"],
+        pembrolizumab_chemo: ["pembrolizumab", "paclitaxel", "carboplatin"],
+        atezolizumab_mono: ["atezolizumab"],
+        nivolumab_mono: ["nivolumab"],
+        pemetrexed_single: ["pemetrexed"],
+        docetaxel_single: ["docetaxel"],
+        gemcitabine_single: ["gemcitabine"],
+        paclitaxel_single: ["paclitaxel"],
+        navelbine_oral_single: ["navelbine_oral"]
+    };
+
+    let currentDiseasePath = "";
+
+    // ----- NAVIGATION LOGIC -----
+    function hideAllScreens() {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    }
+
+    function goToScreen(screenId) {
+        hideAllScreens();
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    function goToProtocolSelect(pathName) {
+        currentDiseasePath = pathName;
+        document.getElementById("lblSelectedPath").innerText = pathName;
+        document.getElementById("protocolSelect").value = "";
+        onProtocolSelected();
+        goToScreen('screenProtocolSelection');
+    }
+
+    function goBackToDiseaseScreen() {
+        if(currentDiseasePath.includes("Phổi")) goToScreen('screenLungCancer');
+        else if(currentDiseasePath.includes("Đầu Cổ")) goToScreen('screenHeadNeck');
+        else goToScreen('screenWelcome');
+    }
+
+    function onProtocolSelected() {
+        const val = document.getElementById("protocolSelect").value;
+        const btn = document.getElementById("btnNextToStep3");
+        if (val !== "") {
+            btn.disabled = false;
+            btn.style.opacity = "1";
+            btn.style.cursor = "pointer";
+        } else {
+            btn.disabled = true;
+            btn.style.opacity = "0.6";
+            btn.style.cursor = "not-allowed";
+        }
+    }
+
+    function goToStep3() {
+        const select = document.getElementById("protocolSelect");
+        const selectedText = select.options[select.selectedIndex].text;
+        const selectedVal = select.value;
+
+        if (!selectedVal) return;
+
+        document.getElementById("selectedProtocolDisplay").innerText = selectedText;
+        goToScreen('screenPatientInfo');
+
+        if (protocolDrugs[selectedVal].includes("carboplatin")) {
+            document.getElementById("carboplatinAucGroup").style.display = "flex";
+        } else {
+            document.getElementById("carboplatinAucGroup").style.display = "none";
+        }
+        calculateAndRender();
+    }
+
+    // ----- CALCULATION LOGIC -----
+    function calculateAndRender() {
+        const protocolVal = document.getElementById("protocolSelect").value;
+        if (!protocolVal) return;
+
+        const dosePercentage = parseFloat(document.getElementById("dosePercentage").value) || 1;
+        const w = parseFloat(document.getElementById("weight").value) || 0;
+        const hCm = parseFloat(document.getElementById("height").value) || 0;
+        const age = parseFloat(document.getElementById("age").value) || 0;
+        const gender = document.getElementById("gender").value;
+        let creat = parseFloat(document.getElementById("creatinine").value) || 0;
+        const crUnit = document.getElementById("creatinineUnit").value;
+        const aucVal = parseFloat(document.getElementById("carboplatinAucValue").value) || 5;
+
+        const hM = hCm / 100;
+        const bmi = hM > 0 ? w / (hM * hM) : 0;
+        const bsa = (w > 0 && hCm > 0) ? 0.007184 * Math.pow(w, 0.425) * Math.pow(hCm, 0.725) : 0;
+
+        let creatMgDl = crUnit === "umol" ? creat / 88.4 : creat;
+        let creatUmol = crUnit === "umol" ? creat : creat * 88.4;
+
+        let crcl = 0;
+        if (creatMgDl > 0 && age > 0 && w > 0) {
+            crcl = ((140 - age) * w) / (72 * creatMgDl);
+            if (gender === "female") crcl *= 0.85;
+        }
+        let crclCalvert = Math.min(crcl, 125);
+
+        document.getElementById("resBmi").innerText = bmi > 0 ? bmi.toFixed(2) + " kg/m²" : "-";
+        document.getElementById("resBsa").innerText = bsa > 0 ? bsa.toFixed(3) + " m²" : "-";
+        document.getElementById("resCrcl").innerText = crcl > 0 ? crcl.toFixed(1) + " mL/min" : "-";
+
+        const drugs = protocolDrugs[protocolVal] || [];
+        const tbody = document.getElementById("doseTableBody");
+        tbody.innerHTML = "";
+        window.currentCalculatedDrugs = [];
+
+        drugs.forEach(key => {
+            const cfg = drugConfigs[key];
+            let theoStr = "";
+            let exactDose = 0;
+            let defaultActual = 0;
+
+            if (cfg.type === "bsa") {
+                let minVal = Math.round(bsa * cfg.defaultDoseMin);
+                let maxVal = Math.round(bsa * cfg.defaultDoseMax);
+                if (minVal === maxVal) {
+                    theoStr = `${minVal} mg (${cfg.defaultDoseMin}mg/m2)`;
+                } else {
+                    theoStr = `${minVal} - ${maxVal} mg (${cfg.defaultDoseMin}-${cfg.defaultDoseMax}mg/m2)`;
+                }
+                exactDose = minVal; // Use minimum standard as baseline for reduction
+                defaultActual = Math.round(exactDose * dosePercentage);
+            } else if (cfg.type === "calvert") {
+                exactDose = Math.round(aucVal * (crclCalvert + 25));
+                theoStr = `${exactDose} mg (AUC ${aucVal})`;
+                defaultActual = Math.round(exactDose * dosePercentage);
+            } else if (cfg.type === "fixed") {
+                exactDose = cfg.fixedDose;
+                theoStr = `${exactDose} mg (Liều cố định)`;
+                defaultActual = exactDose; // Do not apply % reduction to Immunotherapy automatically
+            }
+
+            window.currentCalculatedDrugs.push({ key, name: cfg.name, formula: cfg.formulaDesc, theoStr, defaultActual, dilution: cfg.dilution, infusionRate: cfg.infusionRate });
+
+            let tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><strong>${cfg.name}</strong></td>
+                <td>${cfg.formulaDesc}</td>
+                <td>${theoStr}</td>
+                <td><input type="number" class="actual-dose-input" id="actual_${key}" value="${defaultActual}" oninput="updateSummaryText()"> mg</td>
+                <td>
+                    <div style="font-size: 0.85rem; margin-bottom: 4px;"><strong>Cách pha:</strong> ${cfg.dilution}</div>
+                    <div style="font-size: 0.85rem; color: #0369a1;"><strong>Hướng dẫn:</strong> ${cfg.infusionRate}</div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        updateSummaryText();
+    }
+
+    function updateSummaryText() {
+        const select = document.getElementById("protocolSelect");
+        const protocolTitleText = select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : "HÓA TRỊ";
+        
+        const cycle = document.getElementById("cycleNumber").value;
+        const dosePct = document.getElementById("dosePercentage").value;
+        let pctText = dosePct === "1" ? "" : ` (Giảm liều còn ${parseFloat(dosePct) * 100}%)`;
+
+        const w = document.getElementById("weight").value;
+        const hM = (parseFloat(document.getElementById("height").value) / 100).toFixed(2);
+        const bmi = parseFloat(document.getElementById("resBmi").innerText) || 0;
+        const bsa = parseFloat(document.getElementById("resBsa").innerText) || 0;
+        const crclText = document.getElementById("resCrcl").innerText;
+        const creat = document.getElementById("creatinine").value;
+        const crUnit = document.getElementById("creatinineUnit").value;
+        let creatUmolVal = crUnit === "umol" ? creat : Math.round(creat * 88.4);
+
+        let text = `PHÁC ĐỒ: ${protocolTitleText.toUpperCase()} - CHU KỲ ${cycle}${pctText}\n\n`;
+
+        text += `W: ${w} kg\n`;
+        text += `H: ${hM} m\n`;
+        text += `BMI: ${bmi.toFixed(2)} kg/m2\n`;
+        text += `BSA: ${bsa.toFixed(3)} m2\n`;
+        text += `Creatinin: ${creatUmolVal} micromol/l\n`;
+        text += `CrCl (Cockcroft-Gault): ${crclText}\n\n`;
+
+        text += "Liều lý thuyết :\n";
+        if (window.currentCalculatedDrugs) {
+            window.currentCalculatedDrugs.forEach(item => { text += `-${item.name} : ${item.theoStr}\n`; });
+        }
+
+        text += "Liều thực dùng:\n";
+        if (window.currentCalculatedDrugs) {
+            window.currentCalculatedDrugs.forEach(item => {
+                const inputVal = document.getElementById(`actual_${item.key}`) ? document.getElementById(`actual_${item.key}`).value : item.defaultActual;
+                text += `-${item.name}: ${inputVal} mg  (${item.formula})\n`;
+            });
+        }
+
+        const clinicalState = document.getElementById("clinicalState").value;
+        const heartExam = document.getElementById("heartExam").value;
+        const lungExam = document.getElementById("lungExam").value;
+        const abdomenExam = document.getElementById("abdomenExam").value;
+        const conclusionExam = document.getElementById("conclusionExam").value;
+
+        text += `\n${clinicalState}\n`;
+        text += `- ${heartExam}\n`;
+        text += `- ${lungExam}\n`;
+        text += `- ${abdomenExam}\n`;
+        text += `${conclusionExam}`;
+
+        document.getElementById("summaryTextOutput").innerText = text;
+    }
+
+    function copySummaryText() {
+        const text = document.getElementById("summaryTextOutput").innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Đã sao chép nội dung y lệnh vào bộ nhớ tạm!");
+        }).catch(err => { console.error('Không thể sao chép: ', err); });
+    }
+</script>
+
+</body>
+</html>
