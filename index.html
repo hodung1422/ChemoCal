@@ -131,6 +131,16 @@
             gap: 10px;
             margin-top: 12px;
         }
+
+        .empty-day-notice {
+            background-color: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            padding: 15px;
+            text-align: center;
+            color: #64748b;
+            font-style: italic;
+            border-radius: 6px;
+        }
     </style>
 </head>
 <body>
@@ -139,8 +149,7 @@
     <header id="mainHeader">
         <div class="logo-ring"><span class="logo-text">HVD</span></div>
         <h1>Clinical Decision Support</h1>
-        <p class="welcome-sub">Chào mừng Bác sĩ đến với Phần mềm Tính liều Hóa trị & Miễn dịch</p>
-        <p class="guideline-sub">Cập nhật thường xuyên theo NCCN, ESMO</p>
+        <p class="welcome-sub">Phần mềm Tính liều Hóa trị & Miễn dịch (Y lệnh theo Ngày)</p>
     </header>
 
     <!-- MÀN HÌNH CHÍNH -->
@@ -282,8 +291,10 @@
             <div class="metric-item"><span class="metric-label">CrCl (Cockcroft)</span><span class="metric-value" id="resCrcl">-</span></div>
         </div>
 
-        <div style="display: flex; gap: 16px; margin-bottom: 20px; background: #f1f5f9; padding: 12px; border-radius: 6px;">
-            <div class="form-group" style="flex: 1;"><label>Chu kỳ thứ:</label><input type="number" id="cycleNumber" value="1" min="1"></div>
+        <!-- KHU VỰC ĐIỀU CHỈNH CHU KỲ VÀ NGÀY (CỐT LÕI ĐỂ LỌC THUỐC) -->
+        <div style="display: flex; gap: 16px; margin-bottom: 20px; background: #f1f5f9; padding: 12px; border-radius: 6px; border-left: 4px solid var(--primary-color);">
+            <div class="form-group" style="flex: 1;"><label style="color:var(--primary-color)">Chu kỳ thứ:</label><input type="number" id="cycleNumber" value="1" min="1"></div>
+            <div class="form-group" style="flex: 1;"><label style="color:var(--primary-color)">Ngày thứ (Day):</label><input type="number" id="dayNumber" value="1" min="1"></div>
             <div class="form-group" style="flex: 2;">
                 <label>Tỷ lệ liều (%):</label>
                 <select id="dosePercentage">
@@ -301,9 +312,10 @@
             </thead>
             <tbody id="doseTableBody"></tbody>
         </table>
+        <div id="emptyDayNotice" class="empty-day-notice" style="display:none;">Không có y lệnh thuốc truyền tĩnh mạch nào được chỉ định vào Ngày này theo phác đồ.</div>
 
         <!-- BẢNG Y LỆNH TÓM TẮT THU GỌN / MỞ RỘNG -->
-        <div class="summary-box" id="summaryTextOutput"></div>
+        <div class="summary-box" id="summaryTextOutput" style="margin-top: 15px;"></div>
 
         <div class="action-btn-group">
             <button class="btn-secondary" data-action="toggle-summary" style="flex: 1;">↕️ Thu gọn / Mở rộng Y Lệnh</button>
@@ -313,69 +325,88 @@
 </div>
 
 <script>
-    // ----- DANH MỤC THUỐC CHUẨN XÁC NCCN & HƯỚNG DẪN LÂM SÀNG -----
+    // ----- DANH MỤC THUỐC TÍCH HỢP BỘ LỌC NGÀY & CHU KỲ -----
+    // `days: [1, 2, 3]` -> Thuốc chỉ hiển thị khi ô "Ngày thứ" nhập là 1, 2 hoặc 3.
+    // `condition: (cycle, day)` -> Thuật toán lọc riêng biệt cho Cetuximab.
+    
     const drugConfigs = {
-        docetaxel_tpf: { name: "Docetaxel", type: "bsa", dose: 75, formula: "75mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250ml NaCl 0.9%. Dùng Dexamethasone dự phòng." },
-        cisplatin_tpf: { name: "Cisplatin", type: "bsa", dose: 75, formula: "75mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 500ml NaCl 0.9%. Truyền bù dịch, lợi tiểu." },
-        "5_fu_tpf": { name: "5-Fluorouracil", type: "bsa", dose: 750, formula: "750mg/m2/ngày", schedule: "Ngày 1 - 4 (Truyền liên tục 96h)", dilution: "Pha bơm truyền liên tục 24h/ngày × 4 ngày." },
+        // Hóa trị Cơ bản
+        docetaxel_tpf: { name: "Docetaxel", type: "bsa", dose: 75, formula: "75mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Pha 250ml NaCl 0.9%. Dùng Dexamethasone dự phòng." },
+        cisplatin_tpf: { name: "Cisplatin", type: "bsa", dose: 75, formula: "75mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Pha 500ml NaCl 0.9%. Truyền bù dịch, lợi tiểu." },
+        "5_fu_tpf": { name: "5-Fluorouracil", type: "bsa", dose: 750, formula: "750mg/m2/ngày", schedule: "Ngày 1 - 4 (Truyền liên tục 96h)", days: [1, 2, 3, 4], dilution: "Pha bơm truyền liên tục 24h/ngày × 4 ngày." },
         
-        docetaxel_std: { name: "Docetaxel", type: "bsa_range", minDose: 75, maxDose: 100, formula: "75mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250ml NaCl 0.9%." },
-        paclitaxel_std: { name: "Paclitaxel", type: "bsa_range", minDose: 175, maxDose: 200, formula: "175mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250-500ml NaCl 0.9%. Dây không DEHP." },
-        nab_paclitaxel: { name: "Nab-Paclitaxel", type: "bsa", dose: 100, formula: "100mg/m2", schedule: "Ngày 1, 8, 15 (Mỗi 3 tuần)", dilution: "Pha 100ml NaCl 0.9%. Truyền 30 phút." },
-        paclitaxel_weekly: { name: "Paclitaxel Hàng tuần", type: "bsa", dose: 80, formula: "80mg/m2", schedule: "Hàng tuần", dilution: "Pha 250ml NaCl 0.9%." },
-        paclitaxel_crt_weekly: { name: "Paclitaxel", type: "bsa", dose: 45, formula: "45mg/m2", schedule: "Hàng tuần + Xạ trị", dilution: "Pha 250ml NaCl 0.9%." },
-        gemcitabine_std: { name: "Gemcitabine", type: "bsa_range", minDose: 1000, maxDose: 1250, formula: "1000mg/m2", schedule: "Ngày 1, 8 (Mỗi 3 tuần)", dilution: "Pha 250ml NaCl 0.9%. Truyền 30 phút." },
-        gemcitabine_mono: { name: "Gemcitabine", type: "bsa", dose: 1000, formula: "1000mg/m2", schedule: "Ngày 1, 8, 15 (Mỗi 4 tuần)", dilution: "Pha 250ml NaCl 0.9%." },
-        vinorelbine_std: { name: "Vinorelbine", type: "bsa_range", minDose: 25, maxDose: 30, formula: "25mg/m2", schedule: "Ngày 1, 8 (Mỗi 3 tuần)", dilution: "Pha 50ml NaCl 0.9%. Truyền 10 phút." },
+        docetaxel_std: { name: "Docetaxel", type: "bsa_range", minDose: 75, maxDose: 100, formula: "75mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Pha 250ml NaCl 0.9%." },
+        paclitaxel_std: { name: "Paclitaxel", type: "bsa_range", minDose: 175, maxDose: 200, formula: "175mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Pha 250-500ml NaCl 0.9%. Dây không DEHP." },
+        nab_paclitaxel: { name: "Nab-Paclitaxel", type: "bsa", dose: 100, formula: "100mg/m2", schedule: "Ngày 1, 8, 15 (Mỗi 3 tuần)", days: [1, 8, 15], dilution: "Pha 100ml NaCl 0.9%. Truyền 30 phút." },
+        paclitaxel_weekly: { name: "Paclitaxel Hàng tuần", type: "bsa", dose: 80, formula: "80mg/m2", schedule: "Hàng tuần (Ngày 1, 8, 15...)", days: [1, 8, 15, 22, 29], dilution: "Pha 250ml NaCl 0.9%." },
+        paclitaxel_crt_weekly: { name: "Paclitaxel", type: "bsa", dose: 45, formula: "45mg/m2", schedule: "Hàng tuần + Xạ trị", days: [1, 8, 15, 22, 29, 36], dilution: "Pha 250ml NaCl 0.9%." },
         
-        capecitabine: { name: "Capecitabine", type: "bsa", dose: 1000, formula: "1000mg/m2", schedule: "Ngày 1 - 14 (Uống sau ăn, nghỉ 7 ngày)", dilution: "Thuốc uống viên nén." },
-        tegafur_maint: { name: "Tegafur/Gimeracil/Oteracil", type: "fixed_bsa_tier", formula: "Theo BSA", schedule: "Ngày 1 - 28 (Nghỉ 14 ngày hoặc uống liên tục)", dilution: "Thuốc uống viên nén." },
+        gemcitabine_std: { name: "Gemcitabine", type: "bsa_range", minDose: 1000, maxDose: 1250, formula: "1000mg/m2", schedule: "Ngày 1, 8 (Mỗi 3 tuần)", days: [1, 8], dilution: "Pha 250ml NaCl 0.9%. Truyền 30 phút." },
+        gemcitabine_mono: { name: "Gemcitabine", type: "bsa", dose: 1000, formula: "1000mg/m2", schedule: "Ngày 1, 8, 15 (Mỗi 4 tuần)", days: [1, 8, 15], dilution: "Pha 250ml NaCl 0.9%." },
+        vinorelbine_std: { name: "Vinorelbine", type: "bsa_range", minDose: 25, maxDose: 30, formula: "25mg/m2", schedule: "Ngày 1, 8 (Mỗi 3 tuần)", days: [1, 8], dilution: "Pha 50ml NaCl 0.9%. Truyền 10 phút." },
+        
+        capecitabine: { name: "Capecitabine", type: "bsa", dose: 1000, formula: "1000mg/m2", schedule: "Ngày 1 - 14 (Uống sau ăn, nghỉ 7 ngày)", days: [1], dilution: "Thuốc uống viên nén (Y lệnh cấp 1 lần)." },
+        tegafur_maint: { name: "Tegafur/Gimeracil/Oteracil", type: "fixed_bsa_tier", formula: "Theo BSA", schedule: "Ngày 1 - 28 (Nghỉ 14 ngày hoặc uống liên tục)", days: [1], dilution: "Thuốc uống viên nén (Y lệnh cấp 1 lần)." },
 
-        cisplatin_std: { name: "Cisplatin", type: "bsa_range", minDose: 75, maxDose: 100, formula: "75mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 500ml NaCl 0.9%. Truyền bù dịch." },
-        cisplatin_gct: { name: "Cisplatin (BEP/EP/VIP)", type: "bsa", dose: 20, formula: "20mg/m2/ngày", schedule: "Ngày 1 đến 5 (Mỗi 3 tuần)", dilution: "Pha 500ml NaCl 0.9%. Truyền bù dịch ép." },
-        cisplatin_crt_high: { name: "Cisplatin", type: "bsa", dose: 100, formula: "100mg/m2", schedule: "Ngày 1, 22, 43 (Xạ trị đồng thời)", dilution: "Pha 500ml NaCl 0.9%. Bù dịch ép." },
-        cisplatin_crt_weekly: { name: "Cisplatin", type: "bsa", dose: 40, formula: "40mg/m2", schedule: "Hàng tuần (Ngày 1, 8, 15, 22...)", dilution: "Pha 250ml NaCl 0.9%." },
+        // Cisplatin & Carboplatin
+        cisplatin_std: { name: "Cisplatin", type: "bsa_range", minDose: 75, maxDose: 100, formula: "75mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Pha 500ml NaCl 0.9%. Truyền bù dịch." },
+        cisplatin_extreme: { name: "Cisplatin", type: "bsa", dose: 100, formula: "100mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Pha 500ml NaCl 0.9%. Truyền bù dịch ép." },
+        cisplatin_gct: { name: "Cisplatin (BEP/EP/VIP)", type: "bsa", dose: 20, formula: "20mg/m2/ngày", schedule: "Ngày 1 đến 5 (Mỗi 3 tuần)", days: [1, 2, 3, 4, 5], dilution: "Pha 500ml NaCl 0.9%. Truyền bù dịch ép." },
+        cisplatin_crt_high: { name: "Cisplatin", type: "bsa", dose: 100, formula: "100mg/m2", schedule: "Ngày 1, 22, 43 (Xạ trị đồng thời)", days: [1, 22, 43], dilution: "Pha 500ml NaCl 0.9%. Bù dịch ép." },
+        cisplatin_crt_weekly: { name: "Cisplatin", type: "bsa", dose: 40, formula: "40mg/m2", schedule: "Hàng tuần (Ngày 1, 8, 15, 22...)", days: [1, 8, 15, 22, 29, 36], dilution: "Pha 250ml NaCl 0.9%." },
+        carboplatin: { name: "Carboplatin", type: "calvert_range", formula: "AUC × (CrCl + 25)", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Pha 250ml G5%." },
         
-        carboplatin: { name: "Carboplatin", type: "calvert_range", formula: "AUC × (CrCl + 25)", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250ml G5%." },
-        "5_fu_extreme": { name: "5-Fluorouracil", type: "bsa", dose: 1000, formula: "1000mg/m2/ngày", schedule: "Ngày 1 - 4 (Truyền liên tục 96h)", dilution: "Pha bơm truyền liên tục 24h/ngày × 4 ngày." },
+        "5_fu_extreme": { name: "5-Fluorouracil", type: "bsa", dose: 1000, formula: "1000mg/m2/ngày", schedule: "Ngày 1 - 4 (Truyền liên tục 96h)", days: [1, 2, 3, 4], dilution: "Pha bơm truyền liên tục 24h/ngày × 4 ngày." },
         
-        cetuximab_load: { name: "Cetuximab", type: "bsa", dose: 400, formula: "400mg/m2", schedule: "Ngày 1 (Trước hóa chất/xạ trị 1 tuần)", dilution: "Truyền TM trong 120 phút qua màng lọc." },
-        cetuximab_maint: { name: "Cetuximab", type: "bsa", dose: 250, formula: "250mg/m2", schedule: "Hàng tuần", dilution: "Truyền TM trong 60 phút qua màng lọc." },
+        // Cetuximab (Tính liều bằng thuật toán hàm Function)
+        cetuximab_load: { 
+            name: "Cetuximab (Liều Tải)", type: "bsa", dose: 400, formula: "400mg/m2", schedule: "Liều Tải (Chỉ dùng Chu kỳ 1 - Ngày 1)", 
+            condition: (cycle, day) => cycle === 1 && day === 1,
+            dilution: "Truyền TM trong 120 phút qua màng lọc." 
+        },
+        cetuximab_maint: { 
+            name: "Cetuximab (Liều Duy Trì)", type: "bsa", dose: 250, formula: "250mg/m2", schedule: "Liều Duy Trì (Các ngày 8, 15, 22... & C2+)", 
+            condition: (cycle, day) => (cycle === 1 && (day === 8 || day === 15 || day === 22 || day === 29)) || (cycle > 1 && (day === 1 || day === 8 || day === 15 || day === 22 || day === 29)),
+            dilution: "Truyền TM trong 60 phút qua màng lọc." 
+        },
 
-        pemetrexed: { name: "Pemetrexed", type: "bsa", dose: 500, formula: "500mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 100ml NaCl 0.9%. Kèm B12/Folic acid." },
-        etoposide: { name: "Etoposide", type: "bsa_range", minDose: 80, maxDose: 120, formula: "100mg/m2/ngày", schedule: "Ngày 1, 2, 3 (Mỗi 3 tuần)", dilution: "Pha 500ml NaCl 0.9%. Truyền 60 phút." },
-        etoposide_gct: { name: "Etoposide (BEP/EP/VIP)", type: "bsa", dose: 100, formula: "100mg/m2/ngày", schedule: "Ngày 1 đến 5 (Mỗi 3 tuần)", dilution: "Pha 500ml NaCl 0.9%." },
-        bleomycin: { name: "Bleomycin", type: "fixed", dose: 30, formula: "30 UI (Đơn vị)", schedule: "Ngày 1, 8, 15 (Mỗi 3 tuần)", dilution: "Pha 100ml NaCl 0.9%. Theo dõi xơ phổi." },
-        ifosfamide: { name: "Ifosfamide", type: "bsa", dose: 1200, formula: "1200mg/m2/ngày", schedule: "Ngày 1 đến 5 (Mỗi 3 tuần)", dilution: "Pha 500ml NaCl 0.9%. Dùng kèm Mesna giải độc." },
-        mesna: { name: "Mesna", type: "bsa", dose: 1200, formula: "1200mg/m2/ngày (100% liều Ifosfamide)", schedule: "Ngày 1 đến 5 (Phân liều 0h, 4h, 8h)", dilution: "Truyền TM cùng và sau Ifosfamide." },
-        cyclophosphamide_cap: { name: "Cyclophosphamide", type: "bsa", dose: 500, formula: "500mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250ml NaCl 0.9%." },
-        cyclophosphamide_chop: { name: "Cyclophosphamide", type: "bsa", dose: 750, formula: "750mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250ml NaCl 0.9%." },
-        doxorubicin_cap: { name: "Doxorubicin", type: "bsa", dose: 50, formula: "50mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Truyền tĩnh mạch chậm." },
-        doxorubicin_chop: { name: "Doxorubicin", type: "bsa", dose: 50, formula: "50mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Truyền tĩnh mạch chậm." },
-        vincristine: { name: "Vincristine", type: "bsa", dose: 0.6, formula: "0.6mg/m2 (Tối đa 2mg)", schedule: "Ngày 1, 8 (Mỗi 3 tuần)", dilution: "Tiêm TM chậm qua dây truyền." },
-        vincristine_chop: { name: "Vincristine", type: "bsa", dose: 1.4, formula: "1.4mg/m2 (Tối đa 2mg)", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Tiêm TM chậm." },
-        vinblastine: { name: "Vinblastine", type: "bsa", dose: 0.11, formula: "0.11mg/kg/ngày", schedule: "Ngày 1, 2 (Mỗi 3 tuần)", dilution: "Tiêm TM chậm." },
+        pemetrexed: { name: "Pemetrexed", type: "bsa", dose: 500, formula: "500mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Pha 100ml NaCl 0.9%. Kèm B12/Folic acid." },
+        etoposide: { name: "Etoposide", type: "bsa_range", minDose: 80, maxDose: 120, formula: "100mg/m2/ngày", schedule: "Ngày 1, 2, 3 (Mỗi 3 tuần)", days: [1, 2, 3], dilution: "Pha 500ml NaCl 0.9%. Truyền 60 phút." },
+        etoposide_gct: { name: "Etoposide (BEP/EP/VIP)", type: "bsa", dose: 100, formula: "100mg/m2/ngày", schedule: "Ngày 1 đến 5 (Mỗi 3 tuần)", days: [1, 2, 3, 4, 5], dilution: "Pha 500ml NaCl 0.9%." },
+        bleomycin: { name: "Bleomycin", type: "fixed", dose: 30, formula: "30 UI (Đơn vị)", schedule: "Ngày 1, 8, 15 (Mỗi 3 tuần)", days: [1, 8, 15], dilution: "Pha 100ml NaCl 0.9%. Theo dõi xơ phổi." },
+        ifosfamide: { name: "Ifosfamide", type: "bsa", dose: 1200, formula: "1200mg/m2/ngày", schedule: "Ngày 1 đến 5 (Mỗi 3 tuần)", days: [1, 2, 3, 4, 5], dilution: "Pha 500ml NaCl 0.9%. Dùng kèm Mesna giải độc." },
+        mesna: { name: "Mesna", type: "bsa", dose: 1200, formula: "1200mg/m2/ngày (100% liều Ifosfamide)", schedule: "Ngày 1 đến 5 (Phân liều 0h, 4h, 8h)", days: [1, 2, 3, 4, 5], dilution: "Truyền TM cùng và sau Ifosfamide." },
         
-        rituximab: { name: "Rituximab", type: "bsa", dose: 375, formula: "375mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha NaCl 0.9%. Truyền tăng tốc độ." },
-        prednisone: { name: "Prednisone", type: "bsa", dose: 100, formula: "100mg/ngày", schedule: "Ngày 1 đến 5 (Uống sau ăn sáng)", dilution: "Thuốc uống viên nén." },
+        cyclophosphamide_cap: { name: "Cyclophosphamide", type: "bsa", dose: 500, formula: "500mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Pha 250ml NaCl 0.9%." },
+        cyclophosphamide_chop: { name: "Cyclophosphamide", type: "bsa", dose: 750, formula: "750mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Pha 250ml NaCl 0.9%." },
+        doxorubicin_cap: { name: "Doxorubicin", type: "bsa", dose: 50, formula: "50mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Truyền tĩnh mạch chậm." },
+        doxorubicin_chop: { name: "Doxorubicin", type: "bsa", dose: 50, formula: "50mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Truyền tĩnh mạch chậm." },
+        vincristine: { name: "Vincristine", type: "bsa", dose: 0.6, formula: "0.6mg/m2 (Tối đa 2mg)", schedule: "Ngày 1, 8 (Mỗi 3 tuần)", days: [1, 8], dilution: "Tiêm TM chậm qua dây truyền." },
+        vincristine_chop: { name: "Vincristine", type: "bsa", dose: 1.4, formula: "1.4mg/m2 (Tối đa 2mg)", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Tiêm TM chậm." },
+        vinblastine: { name: "Vinblastine", type: "bsa", dose: 0.11, formula: "0.11mg/kg/ngày", schedule: "Ngày 1, 2 (Mỗi 3 tuần)", days: [1, 2], dilution: "Tiêm TM chậm." },
         
-        irinotecan: { name: "Irinotecan", type: "bsa_range", minDose: 60, maxDose: 65, formula: "60mg/m2", schedule: "Ngày 1, 8, 15", dilution: "Pha 250ml NaCl 0.9% hoặc G5%." },
-        topotecan: { name: "Topotecan", type: "bsa", dose: 1.5, formula: "1.5mg/m2/ngày", schedule: "Ngày 1 đến 5", dilution: "Pha 100ml NaCl 0.9%." },
-        lurbinectedin: { name: "Lurbinectedin", type: "bsa", dose: 3.2, formula: "3.2mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250ml NaCl 0.9% hoặc G5%. Truyền 60 phút." },
+        rituximab: { name: "Rituximab", type: "bsa", dose: 375, formula: "375mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Pha NaCl 0.9%. Truyền tăng tốc độ." },
+        prednisone: { name: "Prednisone", type: "bsa", dose: 100, formula: "100mg/ngày", schedule: "Ngày 1 đến 5 (Uống sau ăn sáng)", days: [1], dilution: "Thuốc uống viên nén (Cấp 1 lần)." },
+        
+        irinotecan: { name: "Irinotecan", type: "bsa_range", minDose: 60, maxDose: 65, formula: "60mg/m2", schedule: "Ngày 1, 8, 15", days: [1, 8, 15], dilution: "Pha 250ml NaCl 0.9% hoặc G5%." },
+        topotecan: { name: "Topotecan", type: "bsa", dose: 1.5, formula: "1.5mg/m2/ngày", schedule: "Ngày 1 đến 5", days: [1, 2, 3, 4, 5], dilution: "Pha 100ml NaCl 0.9%." },
+        lurbinectedin: { name: "Lurbinectedin", type: "bsa", dose: 3.2, formula: "3.2mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Pha 250ml NaCl 0.9% hoặc G5%. Truyền 60 phút." },
 
-        pembrolizumab: { name: "Pembrolizumab", type: "fixed", dose: 200, formula: "200mg cố định", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 100ml NaCl 0.9%." },
-        nivolumab: { name: "Nivolumab", type: "fixed", dose: 240, formula: "240mg cố định", schedule: "Ngày 1 (Mỗi 2 tuần)", dilution: "Pha 100ml NaCl 0.9%." },
-        atezolizumab: { name: "Atezolizumab", type: "fixed", dose: 1200, formula: "1200mg cố định", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250ml NaCl 0.9%." },
-        durvalumab: { name: "Durvalumab", type: "fixed", dose: 1500, formula: "1500mg cố định", schedule: "Ngày 1 (Mỗi 4 tuần)", dilution: "Pha 250ml NaCl 0.9%." },
-        ipilimumab: { name: "Ipilimumab", type: "weight", weightMul: 1, formula: "1mg/kg", schedule: "Ngày 1 (Mỗi 6 tuần)", dilution: "Pha 100ml NaCl 0.9%." },
-        bevacizumab: { name: "Bevacizumab", type: "weight", weightMul: 15, formula: "15mg/kg", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 100ml NaCl 0.9%." },
-        ramucirumab: { name: "Ramucirumab", type: "weight", weightMul: 10, formula: "10mg/kg", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250ml NaCl 0.9%." },
-        sunitinib: { name: "Sunitinib", type: "fixed", dose: 37.5, formula: "37.5mg/ngày cố định", schedule: "Uống hàng ngày liên tục", dilution: "Thuốc uống viên nang." },
-        lenvatinib: { name: "Lenvatinib", type: "fixed", dose: 24, formula: "24mg/ngày cố định", schedule: "Uống hàng ngày liên tục", dilution: "Thuốc uống viên nang." },
-        everolimus: { name: "Everolimus", type: "fixed", dose: 10, formula: "10mg/ngày cố định", schedule: "Uống hàng ngày liên tục", dilution: "Thuốc uống viên nén." },
-        octreotide_lar: { name: "Octreotide LAR", type: "fixed", dose: 30, formula: "30mg cố định", schedule: "Tiêm bắp sâu mỗi 4 tuần", dilution: "Hỗn dịch tiêm bắp." },
-        lanreotide: { name: "Lanreotide", type: "fixed", dose: 120, formula: "120mg cố định", schedule: "Tiêm dưới da sâu mỗi 4 tuần", dilution: "Bơm tiêm đóng sẵn." },
-        tarlatamab: { name: "Tarlatamab", type: "fixed", dose: 10, formula: "10mg cố định", schedule: "Ngày 1, 15", dilution: "Pha loãng túi IV truyền TM." }
+        // Liệu pháp Miễn dịch & Nhắm đích
+        pembrolizumab: { name: "Pembrolizumab", type: "fixed", dose: 200, formula: "200mg cố định", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Pha 100ml NaCl 0.9%." },
+        nivolumab: { name: "Nivolumab", type: "fixed", dose: 240, formula: "240mg cố định", schedule: "Ngày 1 (Mỗi 2 tuần)", days: [1], dilution: "Pha 100ml NaCl 0.9%." },
+        atezolizumab: { name: "Atezolizumab", type: "fixed", dose: 1200, formula: "1200mg cố định", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Pha 250ml NaCl 0.9%." },
+        durvalumab: { name: "Durvalumab", type: "fixed", dose: 1500, formula: "1500mg cố định", schedule: "Ngày 1 (Mỗi 4 tuần)", days: [1], dilution: "Pha 250ml NaCl 0.9%." },
+        ipilimumab: { name: "Ipilimumab", type: "weight", weightMul: 1, formula: "1mg/kg", schedule: "Ngày 1 (Mỗi 6 tuần)", days: [1], dilution: "Pha 100ml NaCl 0.9%." },
+        bevacizumab: { name: "Bevacizumab", type: "weight", weightMul: 15, formula: "15mg/kg", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Pha 100ml NaCl 0.9%." },
+        ramucirumab: { name: "Ramucirumab", type: "weight", weightMul: 10, formula: "10mg/kg", schedule: "Ngày 1 (Mỗi 3 tuần)", days: [1], dilution: "Pha 250ml NaCl 0.9%." },
+        
+        sunitinib: { name: "Sunitinib", type: "fixed", dose: 37.5, formula: "37.5mg/ngày cố định", schedule: "Uống hàng ngày liên tục", days: [1], dilution: "Thuốc uống viên nang (Cấp 1 lần)." },
+        lenvatinib: { name: "Lenvatinib", type: "fixed", dose: 24, formula: "24mg/ngày cố định", schedule: "Uống hàng ngày liên tục", days: [1], dilution: "Thuốc uống viên nang (Cấp 1 lần)." },
+        everolimus: { name: "Everolimus", type: "fixed", dose: 10, formula: "10mg/ngày cố định", schedule: "Uống hàng ngày liên tục", days: [1], dilution: "Thuốc uống viên nén (Cấp 1 lần)." },
+        octreotide_lar: { name: "Octreotide LAR", type: "fixed", dose: 30, formula: "30mg cố định", schedule: "Tiêm bắp sâu mỗi 4 tuần", days: [1], dilution: "Hỗn dịch tiêm bắp." },
+        lanreotide: { name: "Lanreotide", type: "fixed", dose: 120, formula: "120mg cố định", schedule: "Tiêm dưới da sâu mỗi 4 tuần", days: [1], dilution: "Bơm tiêm đóng sẵn." },
+        tarlatamab: { name: "Tarlatamab", type: "fixed", dose: 10, formula: "10mg cố định", schedule: "Ngày 1, 15", days: [1, 15], dilution: "Pha loãng túi IV truyền TM." }
     };
 
     // ----- DATABASE PHÁC ĐỒ TOÀN DIỆN (HNSCC, LUNG, MEDIASTINUM) -----
@@ -400,9 +431,9 @@
         { id: "hn_rm_kn048_mono", name: "KEYNOTE-048: Pembrolizumab đơn trị (PD-L1 CPS ≥ 1)", drugs: ["pembrolizumab"], group: "4A. Miễn dịch / Nhắm đích Bước 1 (Category 1)", tags: ["hn_metastatic"] },
         { id: "hn_rm_kn048_chemo", name: "KEYNOTE-048: Pembrolizumab + Cisplatin + 5-FU", drugs: ["pembrolizumab", "cisplatin_tpf", "5_fu_extreme"], group: "4A. Miễn dịch / Nhắm đích Bước 1 (Category 1)", tags: ["hn_metastatic"] },
         { id: "hn_rm_kn048_carbo", name: "KEYNOTE-048: Pembrolizumab + Carboplatin + 5-FU", drugs: ["pembrolizumab", "carboplatin", "5_fu_extreme"], group: "4A. Miễn dịch / Nhắm đích Bước 1 (Category 1)", tags: ["hn_metastatic"] },
-        { id: "hn_rm_extreme_cis", name: "EXTREME Trial: Cetuximab + Cisplatin + 5-FU", drugs: ["cetuximab_load", "cisplatin_tpf", "5_fu_extreme"], group: "4A. Miễn dịch / Nhắm đích Bước 1 (Category 1)", tags: ["hn_metastatic"] },
-        { id: "hn_rm_extreme_carbo", name: "EXTREME Modified: Cetuximab + Carboplatin + 5-FU", drugs: ["cetuximab_load", "carboplatin", "5_fu_extreme"], group: "4A. Miễn dịch / Nhắm đích Bước 1 (Category 1)", tags: ["hn_metastatic"] },
-        { id: "hn_rm_tpex", name: "TPEx Trial: Cetuximab + Docetaxel + Cisplatin", drugs: ["cetuximab_load", "docetaxel_std", "cisplatin_std"], group: "4A. Miễn dịch / Nhắm đích Bước 1 (Category 1)", tags: ["hn_metastatic"] },
+        { id: "hn_rm_extreme_cis", name: "EXTREME Trial: Cetuximab + Cisplatin + 5-FU", drugs: ["cetuximab_load", "cetuximab_maint", "cisplatin_extreme", "5_fu_extreme"], group: "4A. Miễn dịch / Nhắm đích Bước 1 (Category 1)", tags: ["hn_metastatic"] },
+        { id: "hn_rm_extreme_carbo", name: "EXTREME Modified: Cetuximab + Carboplatin + 5-FU", drugs: ["cetuximab_load", "cetuximab_maint", "carboplatin", "5_fu_extreme"], group: "4A. Miễn dịch / Nhắm đích Bước 1 (Category 1)", tags: ["hn_metastatic"] },
+        { id: "hn_rm_tpex", name: "TPEx Trial: Cetuximab + Docetaxel + Cisplatin", drugs: ["cetuximab_load", "cetuximab_maint", "docetaxel_std", "cisplatin_std"], group: "4A. Miễn dịch / Nhắm đích Bước 1 (Category 1)", tags: ["hn_metastatic"] },
 
         { id: "hn_rm_pacli_cis", name: "Paclitaxel + Cisplatin", drugs: ["paclitaxel_std", "cisplatin_std"], group: "4B. Phác đồ Phối hợp 2 Thuốc", tags: ["hn_metastatic"] },
         { id: "hn_rm_pacli_carbo", name: "Paclitaxel + Carboplatin", drugs: ["paclitaxel_std", "carboplatin"], group: "4B. Phác đồ Phối hợp 2 Thuốc", tags: ["hn_metastatic"] },
@@ -548,13 +579,13 @@
             document.getElementById("btnHnNextToPatient").disabled = !e.target.value;
         } else if(id === 'medProtocolSelect') {
             document.getElementById("btnMedNextToPatient").disabled = !e.target.value;
-        } else if(['weight', 'height', 'age', 'gender', 'creatinine', 'creatinineUnit', 'carboplatinAucValue', 'cycleNumber', 'dosePercentage'].includes(id)) {
+        } else if(['weight', 'height', 'age', 'gender', 'creatinine', 'creatinineUnit', 'carboplatinAucValue', 'cycleNumber', 'dayNumber', 'dosePercentage'].includes(id)) {
             calculateAndRender();
         }
     });
 
     document.addEventListener('input', function(e) {
-        if(['weight', 'height', 'age', 'creatinine', 'cycleNumber'].includes(e.target.id)) {
+        if(['weight', 'height', 'age', 'creatinine', 'cycleNumber', 'dayNumber'].includes(e.target.id)) {
             calculateAndRender();
         } else if(e.target.classList.contains('actual-dose-input')) {
             updateSummaryText();
@@ -625,6 +656,7 @@
         document.getElementById("selectedProtocolDisplay").innerText = sel.options[sel.selectedIndex].text;
         selectedProtocolDrugs = allProtocols.find(p => p.id === sel.value).drugs;
         document.getElementById("carboplatinAucGroup").style.display = selectedProtocolDrugs.includes("carboplatin") ? "flex" : "none";
+        document.getElementById("dayNumber").value = 1; // Reset day to 1 when changing protocol
         goToScreen('screenPatientInfo');
         calculateAndRender();
     }
@@ -638,6 +670,9 @@
         const isFemale = document.getElementById("gender").value === "female";
         let creatInput = parseFloat(document.getElementById("creatinine").value) || 0;
         let creatUmol = document.getElementById("creatinineUnit").value === "mg" ? creatInput * 88.4 : creatInput;
+        
+        const currentCycle = parseInt(document.getElementById("cycleNumber").value) || 1;
+        const currentDay = parseInt(document.getElementById("dayNumber").value) || 1;
 
         const bsa = (w > 0 && h > 0) ? 0.007184 * Math.pow(w, 0.425) * Math.pow(h, 0.725) : 0;
         let crcl = (creatUmol > 0 && age > 0 && w > 0) ? (((140 - age) * w) / (72 * (creatUmol / 88.4))) * (isFemale ? 0.85 : 1) : 0;
@@ -650,9 +685,20 @@
         const tbody = document.getElementById("doseTableBody");
         tbody.innerHTML = "";
         window.drugResults = [];
+        let displayedDrugsCount = 0;
 
         selectedProtocolDrugs.forEach(key => {
             const cfg = drugConfigs[key];
+            
+            // --- THUẬT TOÁN LỌC THUỐC THEO NGÀY (DAY FILTERING CORE) ---
+            if (cfg.condition) {
+                if (!cfg.condition(currentCycle, currentDay)) return; // Bỏ qua nếu Cetuximab không đúng điều kiện
+            } else if (cfg.days) {
+                if (!cfg.days.includes(currentDay)) return; // Bỏ qua nếu Thuốc không truyền vào Ngày đang chọn
+            }
+            // -----------------------------------------------------------
+
+            displayedDrugsCount++;
             let theoStr = "", actHtml = "";
             let theoValText = "", actFormulaNote = "";
 
@@ -715,15 +761,19 @@
 
             tbody.innerHTML += `<tr><td><strong>${cfg.name}</strong><br><small style="color:#64748b">${cfg.schedule}</small></td><td>${cfg.formula}</td><td>${theoStr}</td><td>${actHtml}</td><td><small>${cfg.dilution}</small></td></tr>`;
         });
+
+        // Hiển thị thông báo nếu Ngày đó không có thuốc nào
+        document.getElementById("emptyDayNotice").style.display = displayedDrugsCount === 0 ? "block" : "none";
+
         updateSummaryText();
     }
 
     function updateSummaryText() {
-        // Tinh giản tên phác đồ
         let rawTitle = document.getElementById("selectedProtocolDisplay").innerText;
         let title = rawTitle.replace(/\s*\(Phác đồ [^)]+\)/gi, "").replace(/^[A-Z0-9\s-]+\:\s*/i, "").trim();
         
         const cycle = document.getElementById("cycleNumber").value;
+        const day = document.getElementById("dayNumber").value; // Lấy dữ liệu Ngày
         const dosePct = document.getElementById("dosePercentage").value;
         let pctText = dosePct === "1" ? "" : ` (Giảm liều còn ${Math.round(parseFloat(dosePct) * 100)}%)`;
 
@@ -740,8 +790,8 @@
         const bmi = h > 0 ? (w / Math.pow(h/100, 2)) : 0;
         let crcl = (creatUmol > 0 && age > 0 && w > 0) ? (((140 - age) * w) / (72 * (creatUmol / 88.4))) * (isFemale ? 0.85 : 1) : 0;
 
-        // TẠO CHUỖI VĂN BẢN CHUẨN XUẤT HIS
-        let text = `PHÁC ĐỒ: ${title.toUpperCase()} - CHU KỲ ${cycle}${pctText}\n\n`;
+        // TẠO CHUỖI VĂN BẢN CHUẨN XUẤT HIS (ĐÃ THÊM NGÀY THỨ MẤY)
+        let text = `PHÁC ĐỒ: ${title.toUpperCase()} - CHU KỲ ${cycle} - NGÀY ${day}${pctText}\n\n`;
         text += `W: ${w} kg\n`;
         text += `H: ${hMeter} m\n`;
         text += `BMI: ${bmi.toFixed(2)} kg/m2\n`;
@@ -749,13 +799,13 @@
         text += `Creatinin: ${creatInput} ${creatUnit}\n`;
         text += `CrCl (Cockcroft-Gault): ${crcl.toFixed(1)} mL/min\n\n`;
 
-        text += `Liều lý thuyết :\n`;
-        if(window.drugResults) {
+        if (window.drugResults.length === 0) {
+            text += `(Không có y lệnh thuốc truyền tĩnh mạch nào được chỉ định vào Ngày ${day} của chu kỳ này)\n`;
+        } else {
+            text += `Liều lý thuyết :\n`;
             window.drugResults.forEach(item => { text += `-${item.name} : ${item.theoVal}\n`; });
-        }
 
-        text += `Liều thực dùng:\n`;
-        if(window.drugResults) {
+            text += `\nLiều thực dùng:\n`;
             window.drugResults.forEach(item => { text += `-${item.name}: ${item.getActVal()}\n`; });
         }
 
