@@ -3,447 +3,272 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ứng dụng Tính Liều Hóa Trị & Liệu Pháp Miễn Dịch</title>
+    <title>Clinical Decision Support - Oncology & Immunotherapy</title>
     <style>
         :root {
-            --primary-color: #0284c7;
+            --primary-color: #0284c7; 
             --primary-hover: #0369a1;
-            --bg-color: #f8fafc;
+            --bg-color: #0f172a;
             --card-bg: #ffffff;
             --text-main: #1e293b;
             --text-muted: #64748b;
             --border-color: #cbd5e1;
-            --success-bg: #f0fdf4;
-            --success-border: #bbf7d0;
-            --success-text: #166534;
-            --step-bg: #f1f5f9;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            line-height: 1.5;
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 20px; 
+            line-height: 1.5; 
         }
 
-        .container {
-            max-width: 950px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
-        header h1 {
-            color: var(--primary-color);
-            font-size: 1.75rem;
-            margin-bottom: 8px;
-        }
-
-        header p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-            padding: 24px;
-            margin-bottom: 20px;
-        }
-
-        .screen {
-            display: none;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        .screen.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        h2.welcome-title {
-            color: var(--primary-color);
-            text-align: center;
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-            border: none;
-        }
-
-        .question-text {
-            text-align: center;
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 24px;
-            color: #334155;
-        }
-
-        .btn-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .btn-large {
-            background-color: #f1f5f9;
-            color: var(--text-main);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
+        .container { max-width: 980px; margin: 0 auto; }
+        
+        header { text-align: center; margin-bottom: 24px; }
+        header.hidden { display: none; }
+        
+        .logo-ring {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 12px auto;
+            border-radius: 50%;
+            background: rgba(2, 132, 199, 0.15);
+            border: 2px solid rgba(2, 132, 199, 0.4);
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100px;
         }
 
-        .btn-large:hover {
-            background-color: #e0f2fe;
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(2, 132, 199, 0.1);
-        }
+        .logo-text { font-size: 1.35rem; font-weight: 800; color: #0284c7; letter-spacing: 1px; }
+        header h1 { color: #f8fafc; font-size: 1.6rem; margin-bottom: 6px; font-weight: 700; }
+        header p.welcome-sub { color: #38bdf8; font-size: 1.05rem; font-weight: 600; margin: 0 0 4px 0; }
+        header p.guideline-sub { color: #94a3b8; font-size: 0.85rem; font-style: italic; margin: 0; }
 
-        h2 {
-            font-size: 1.2rem;
-            color: var(--text-main);
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 8px;
-            margin-top: 0;
-            margin-bottom: 16px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: var(--text-main);
-        }
-
-        input, select, textarea {
-            padding: 10px 12px;
+        .card { 
+            background: var(--card-bg); 
+            border-radius: 12px; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); 
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            outline: none;
-            transition: border-color 0.2s;
+            padding: 24px; 
+            margin-bottom: 20px; 
         }
+        
+        .screen { display: none; }
+        .screen.active { display: block; }
 
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
-        }
+        h2 { font-size: 1.25rem; color: var(--primary-color); border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-top: 0; margin-bottom: 20px; }
 
-        .protocol-box {
-            background: var(--step-bg);
-            border: 2px dashed var(--primary-color);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        button.btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 12px 24px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            width: 100%;
-        }
-
-        button.btn-primary:hover {
-            background-color: var(--primary-hover);
-        }
-
-        button.btn-secondary {
-            background-color: #475569;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 16px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        button.btn-back {
-            background-color: transparent;
-            color: #64748b;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            padding: 8px 16px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            font-weight: 600;
-            margin-bottom: 16px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        button.btn-back:hover {
-            background-color: #f1f5f9;
-            color: #334155;
-        }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        .disease-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+        .disease-card { 
+            background: #f8fafc; 
+            border: 1px solid var(--border-color); 
+            border-radius: 10px; 
+            padding: 24px 20px; 
+            font-size: 1.1rem; 
+            font-weight: 600; 
+            cursor: pointer; 
+            text-align: center; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center;
             gap: 12px;
-            margin-bottom: 20px;
+            transition: all 0.2s ease;
         }
+        .disease-card:hover { background: #e0f2fe; border-color: var(--primary-color); color: var(--primary-color); transform: translateY(-2px); }
+        .disease-icon { font-size: 2.2rem; pointer-events: none; }
+        .disease-card span { pointer-events: none; }
 
-        .metric-card {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-main); text-transform: uppercase;}
+        input, select { padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95rem; outline: none; background: #fff; }
+        
+        button.btn-primary { background-color: var(--primary-color); color: white; border: none; border-radius: 6px; padding: 12px 24px; font-size: 1rem; font-weight: 600; cursor: pointer; width: 100%; }
+        button.btn-primary:disabled { background-color: #94a3b8; cursor: not-allowed; }
+        button.btn-secondary { background-color: #475569; color: white; border: none; border-radius: 6px; padding: 10px 16px; font-size: 0.9rem; cursor: pointer; font-weight: 600; }
+        button.btn-back { background: transparent; color: #64748b; border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 12px; font-size: 0.85rem; cursor: pointer; font-weight: 600; margin-bottom: 16px; }
+
+        .metrics-bar { display: flex; gap: 16px; background: #f1f5f9; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 20px; flex-wrap: wrap;}
+        .metric-item { display: flex; flex-direction: column; }
+        .metric-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+        .metric-value { font-size: 1.1rem; font-weight: 700; color: var(--primary-color); }
+
+        table.dose-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        table.dose-table th, table.dose-table td { border: 1px solid var(--border-color); padding: 10px; text-align: left; font-size: 0.9rem; vertical-align: top; background: #fff; }
+        table.dose-table th { background-color: #f1f5f9; font-weight: 600; }
+        
+        table.dose-table input.actual-dose-input { width: 80px; padding: 6px; font-weight: bold; color: var(--primary-color); text-align: center; }
+        
+        /* SUMMARY BOX & COLLAPSE STYLING */
+        .summary-box { 
+            background: #fffbeb; 
+            border: 1px solid #fde68a; 
+            color: #92400e; 
+            padding: 16px; 
+            border-radius: 6px; 
+            font-family: monospace; 
+            white-space: pre-line; 
+            font-size: 0.9rem; 
+            line-height: 1.6;
+            max-height: 1400px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out, padding 0.3s ease, opacity 0.2s ease;
+            opacity: 1;
         }
-
-        .metric-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-weight: 700;
-            margin-bottom: 4px;
+        .summary-box.collapsed {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            border: none;
+            opacity: 0;
         }
-
-        .metric-value {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--primary-color);
-        }
-
-        table.dose-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        table.dose-table th, table.dose-table td {
-            border: 1px solid #cbd5e1;
-            padding: 10px 12px;
-            text-align: left;
-            font-size: 0.9rem;
-            vertical-align: top;
-        }
-
-        table.dose-table th {
-            background-color: #f1f5f9;
-            font-weight: 600;
-        }
-
-        table.dose-table input.actual-dose-input {
-            width: 80px;
-            padding: 4px 8px;
-            font-size: 0.9rem;
-        }
-
-        .summary-box {
-            background: var(--success-bg);
-            border: 1px solid var(--success-border);
-            color: var(--success-text);
-            padding: 16px;
-            border-radius: 8px;
-            font-family: monospace;
-            white-space: pre-line;
-            font-size: 0.88rem;
-            margin-top: 16px;
+        
+        .action-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <h1>Tính Liều Hóa Trị & Miễn Dịch</h1>
+    <header id="mainHeader">
+        <div class="logo-ring"><span class="logo-text">HVD</span></div>
+        <h1>Clinical Decision Support</h1>
+        <p class="welcome-sub">Chào mừng Bác sĩ đến với Phần mềm Tính liều Hóa trị & Miễn dịch</p>
+        <p class="guideline-sub">Cập nhật thường xuyên theo NCCN, ESMO</p>
     </header>
 
-    <!-- MÀN HÌNH 0: CHÀO MỪNG & CHỌN BỆNH LÝ -->
-    <div class="card screen active" id="screenWelcome">
-        <h2 class="welcome-title">Chào mừng Bác sĩ đến với phần mềm tính liều hóa trị!</h2>
-        <div class="question-text">Bạn chọn bệnh lý nào để điều trị?</div>
-        
-        <div class="btn-grid">
-            <button class="btn-large" onclick="goToScreen('screenLungCancer')">
-                <span style="font-size: 1.4rem; margin-bottom: 8px;">🫁</span>
-                Ung thư Phổi
-            </button>
-            <button class="btn-large" onclick="goToScreen('screenHeadNeck')">
-                <span style="font-size: 1.4rem; margin-bottom: 8px;">🗣️</span>
-                Ung thư đầu cổ
-            </button>
+    <!-- MÀN HÌNH CHÍNH -->
+    <div class="card screen active" id="screenDisease">
+        <h2>Chọn Chuyên Khoa / Bệnh Lý Lâm Sàng</h2>
+        <div class="disease-grid">
+            <div class="disease-card" data-action="open-spec" data-spec="hnscc"><span class="disease-icon">🗣️</span><span>Ung thư Đầu Cổ</span></div>
+            <div class="disease-card" data-action="open-spec" data-spec="lung"><span class="disease-icon">🫁</span><span>Ung thư Phổi</span></div>
+            <div class="disease-card" data-action="open-spec" data-spec="mediastinum"><span class="disease-icon">🫀</span><span>U trung thất</span></div>
         </div>
     </div>
 
-    <!-- MÀN HÌNH 1A: CHỌN GIAI ĐOẠN UNG THƯ PHỔI -->
-    <div class="card screen" id="screenLungCancer">
-        <button class="btn-back" onclick="goToScreen('screenWelcome')">← Quay lại</button>
-        <h2 class="welcome-title" style="color: #334155;">Ung thư Phổi</h2>
-        <div class="question-text">Vui lòng chọn giai đoạn / mục đích điều trị:</div>
-
-        <div class="btn-grid" style="grid-template-columns: 1fr;">
-            <button class="btn-large" style="min-height: 70px;" onclick="goToProtocolSelect('Phổi - Tân bổ trợ (Neo Adjuvant)')">
-                Điều trị tân bổ trợ (Neo Adjuvant)
-            </button>
-            <button class="btn-large" style="min-height: 70px;" onclick="goToProtocolSelect('Phổi - Bổ trợ (Adjuvant)')">
-                Điều trị bổ trợ (Adjuvant)
-            </button>
-            <button class="btn-large" style="min-height: 70px;" onclick="goToProtocolSelect('Phổi - Tiến xa/Di căn (Systemic - Recurrent - Advanced - Metastatic)')">
-                Điều trị hệ thống giai đoạn tiến xa - tái phát - di căn (Systemic - Recurrent - Advanced - Metastatic)
-            </button>
-        </div>
-    </div>
-
-    <!-- MÀN HÌNH 1B: CHỌN GIAI ĐOẠN UNG THƯ ĐẦU CỔ -->
-    <div class="card screen" id="screenHeadNeck">
-        <button class="btn-back" onclick="goToScreen('screenWelcome')">← Quay lại</button>
-        <h2 class="welcome-title" style="color: #334155;">Ung thư Đầu Cổ</h2>
-        <div class="question-text">Mục đích điều trị:</div>
-        <div class="btn-grid" style="grid-template-columns: 1fr;">
-            <button class="btn-large" style="min-height: 70px;" onclick="goToProtocolSelect('Đầu Cổ - Hóa xạ đồng thời / Tân bổ trợ')">
-                Điều trị Hóa xạ đồng thời / Tân bổ trợ
-            </button>
-            <button class="btn-large" style="min-height: 70px;" onclick="goToProtocolSelect('Đầu Cổ - Di căn / Tái phát')">
-                Điều trị hệ thống (Tái phát - Di căn)
-            </button>
-        </div>
-    </div>
-
-    <!-- MÀN HÌNH 2: CHỌN PHÁC ĐỒ -->
-    <div class="card screen" id="screenProtocolSelection">
-        <button class="btn-back" onclick="goBackToDiseaseScreen()">← Quay lại chọn giai đoạn</button>
-        <h2>Chọn Phác đồ Điều trị</h2>
-        <div style="background: #e0f2fe; padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: 600; color: #0369a1;">
-            Hướng điều trị: <span id="lblSelectedPath"></span>
-        </div>
-
-        <div class="protocol-box">
-            <div class="form-group">
-                <label for="protocolSelect" style="font-size: 1rem; color: #0369a1;">Chọn phác đồ hóa trị / miễn dịch cụ thể:</label>
-                <select id="protocolSelect" style="padding: 12px; font-size: 1rem; margin-top: 8px;" onchange="onProtocolSelected()">
-                    <option value="">-- Chọn phác đồ --</option>
-                    <optgroup label="Phác đồ Phối hợp Hóa trị">
-                        <option value="paclitaxel_carboplatin">Paclitaxel + Carboplatin</option>
-                        <option value="cisplatin_gemcitabine">Gemcitabine + Cisplatin</option>
-                        <option value="navelbine_cisplatin">Navelbine (Vinorelbine) IV + Cisplatin</option>
-                        <option value="pemetrexed_cisplatin">Pemetrexed + Cisplatin</option>
-                        <option value="pemetrexed_carboplatin">Pemetrexed + Carboplatin</option>
-                    </optgroup>
-                    <optgroup label="Phác đồ Miễn dịch (IO) & Phối hợp">
-                        <option value="pembrolizumab_mono">Pembrolizumab đơn trị</option>
-                        <option value="pembrolizumab_chemo">Pembrolizumab + Paclitaxel + Carboplatin</option>
-                        <option value="atezolizumab_mono">Atezolizumab đơn trị</option>
-                        <option value="nivolumab_mono">Nivolumab đơn trị</option>
-                    </optgroup>
-                    <optgroup label="Phác đồ Đơn trị Hóa trị">
-                        <option value="pemetrexed_single">Pemetrexed đơn trị</option>
-                        <option value="docetaxel_single">Docetaxel đơn trị</option>
-                        <option value="gemcitabine_single">Gemcitabine đơn trị</option>
-                        <option value="paclitaxel_single">Paclitaxel đơn trị</option>
-                        <option value="navelbine_oral_single">Navelbine uống đơn trị</option>
-                    </optgroup>
-                </select>
-            </div>
-        </div>
-        <button class="btn-primary" id="btnNextToStep3" onclick="goToStep3()" disabled style="opacity: 0.6; cursor: not-allowed;">Tiếp tục Nhập Chỉ số Bệnh nhân</button>
-    </div>
-
-    <!-- MÀN HÌNH 3: NHẬP THÔNG TIN BỆNH NHÂN -->
-    <div class="card screen" id="screenPatientInfo">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <button class="btn-back" style="margin-bottom: 0;" onclick="goToScreen('screenProtocolSelection')">← Đổi phác đồ</button>
-            <span id="selectedProtocolDisplay" style="font-weight: 700; color: #0369a1; background: #e0f2fe; padding: 6px 12px; border-radius: 8px;">Phác đồ: --</span>
-        </div>
-
-        <h2>Thông số Bệnh nhân & Khám Lâm Sàng</h2>
-        <div class="form-grid" style="background-color: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <div class="form-group">
-                <label for="cycleNumber">Chu kỳ điều trị:</label>
-                <input type="number" id="cycleNumber" value="1" min="1" style="border-color: var(--primary-color);" oninput="updateSummaryText()">
-            </div>
-            <div class="form-group">
-                <label for="dosePercentage">Tỷ lệ liều thực dùng:</label>
-                <select id="dosePercentage" style="border-color: var(--primary-color);" onchange="calculateAndRender()">
-                    <option value="1">100% Liều</option>
-                    <option value="0.9">90% Liều</option>
-                    <option value="0.85">85% Liều</option>
-                    <option value="0.8">80% Liều</option>
-                    <option value="0.75">75% Liều</option>
-                </select>
-            </div>
-        </div>
-        
+    <!-- CÂY QUYẾT ĐỊNH UNG THƯ ĐẦU CỔ -->
+    <div class="card screen" id="screenHnMain">
+        <button class="btn-back" data-action="go-home">← Quay lại trang chủ</button>
+        <h2>Phân loại Ung thư Đầu Cổ (HNSCC)</h2>
         <div class="form-grid">
             <div class="form-group">
-                <label for="weight">Cân nặng W (kg):</label>
-                <input type="number" id="weight" step="0.1" value="65" oninput="calculateAndRender()">
+                <label>Mục đích & Giai đoạn điều trị:</label>
+                <select id="hnStage">
+                    <option value="">-- Chọn --</option>
+                    <option value="induction">1. Hóa trị Dẫn đầu / Tiền cảm ứng (Induction Chemotherapy)</option>
+                    <option value="locally">2. Tiến triển tại chỗ / Hóa xạ đồng thời (Locally Advanced / CRT)</option>
+                    <option value="maintenance">3. Điều trị Duy trì sau Hóa xạ trị (Maintenance Therapy)</option>
+                    <option value="metastatic">4. Tái phát / Di căn (Recurrent / Metastatic HNSCC)</option>
+                </select>
             </div>
+        </div>
+        <div id="hnProtocolSelectionGroup" style="display: none; background: #e0f2fe; padding: 15px; border-radius: 8px;">
+            <label style="color: var(--primary-color); font-weight: 700;">Lựa chọn Phác đồ (Tên Nghiên cứu & Phác đồ Chuẩn):</label>
+            <select id="hnProtocolSelect" style="width: 100%; padding: 10px; margin-top: 6px;"></select>
+            <button class="btn-primary" id="btnHnNextToPatient" data-action="patient-info-hn" style="margin-top: 15px;" disabled>Tiếp tục Nhập Thông số Bệnh nhân</button>
+        </div>
+    </div>
 
+    <!-- CÂY QUYẾT ĐỊNH UNG THƯ PHỔI -->
+    <div class="card screen" id="screenLungMain">
+        <button class="btn-back" data-action="go-home">← Quay lại trang chủ</button>
+        <h2>Phân loại Ung thư Phổi</h2>
+        <div class="form-grid">
             <div class="form-group">
-                <label for="height">Chiều cao H (cm):</label>
-                <input type="number" id="height" step="1" value="155" oninput="calculateAndRender()">
+                <label>Loại tế bào:</label>
+                <select id="lungCellType">
+                    <option value="">-- Chọn --</option>
+                    <option value="nsclc">Không tế bào nhỏ (NSCLC)</option>
+                    <option value="sclc">Tế bào nhỏ (SCLC)</option>
+                </select>
             </div>
-
-            <div class="form-group">
-                <label for="age">Tuổi:</label>
-                <input type="number" id="age" value="55" oninput="calculateAndRender()">
+            <div class="form-group" id="lungStageGroup" style="display: none;">
+                <label>Giai đoạn:</label>
+                <select id="lungStage">
+                    <option value="">-- Chọn --</option>
+                    <option value="early">Tân bổ trợ / Bổ trợ (Stage I-III)</option>
+                    <option value="locally">Tiến triển tại chỗ / Hóa xạ đồng thời (Stage III)</option>
+                    <option value="metastatic">Di căn / Tiến xa (Stage IV)</option>
+                </select>
             </div>
+            <div class="form-group" id="lungHistologyGroup" style="display: none;">
+                <label>Mô học (Histology):</label>
+                <select id="lungHistology">
+                    <option value="">-- Chọn --</option>
+                    <option value="nonsquamous">Không vảy (Non-Squamous)</option>
+                    <option value="squamous">Vảy (Squamous - Chống chỉ định Bevacizumab)</option>
+                </select>
+            </div>
+        </div>
+        <div id="protocolSelectionGroup" style="display: none; background: #e0f2fe; padding: 15px; border-radius: 8px;">
+            <label style="color: var(--primary-color); font-weight: 700;">Lựa chọn Phác đồ (Tên Nghiên cứu & Chuẩn NCCN/ESMO):</label>
+            <select id="protocolSelect" style="width: 100%; padding: 10px; margin-top: 6px;"></select>
+            <button class="btn-primary" id="btnNextToPatient" data-action="patient-info-lung" style="margin-top: 15px;" disabled>Tiếp tục Nhập Thông số Bệnh nhân</button>
+        </div>
+    </div>
 
+    <!-- CÂY QUYẾT ĐỊNH U TRUNG THẤT -->
+    <div class="card screen" id="screenMediastinumMain">
+        <button class="btn-back" data-action="go-home">← Quay lại trang chủ</button>
+        <h2>Phân loại U Trung Thất (Mediastinal Tumors)</h2>
+        <div class="form-grid">
             <div class="form-group">
-                <label for="gender">Giới tính:</label>
-                <select id="gender" onchange="calculateAndRender()">
+                <label>Nhóm bệnh lý mô học:</label>
+                <select id="medHistology">
+                    <option value="">-- Chọn --</option>
+                    <option value="thymoma">1. U tuyến ức (Thymoma)</option>
+                    <option value="thymic_ca">2. Ung thư biểu mô tuyến ức (Thymic Carcinoma)</option>
+                    <option value="gct_first">3. U tế bào mầm trung thất (Germ Cell Tumors) - Bước 1</option>
+                    <option value="gct_salvage">4. U tế bào mầm trung thất - Tái phát / Cứu vét (Salvage)</option>
+                    <option value="med_net">5. U Neuroendocrine Trung thất (Mediastinal NET / Carcinoid)</option>
+                    <option value="med_lymphoma">6. U Lympho Trung thất Nguyên phát (PMLBCL)</option>
+                </select>
+            </div>
+        </div>
+        <div id="medProtocolSelectionGroup" style="display: none; background: #e0f2fe; padding: 15px; border-radius: 8px;">
+            <label style="color: var(--primary-color); font-weight: 700;">Lựa chọn Phác đồ (Chuẩn NCCN/ESMO):</label>
+            <select id="medProtocolSelect" style="width: 100%; padding: 10px; margin-top: 6px;"></select>
+            <button class="btn-primary" id="btnMedNextToPatient" data-action="patient-info-med" style="margin-top: 15px;" disabled>Tiếp tục Nhập Thông số Bệnh nhân</button>
+        </div>
+    </div>
+
+    <!-- MÀN HÌNH TÍNH LIỀU CHUNG -->
+    <div class="card screen" id="screenPatientInfo">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <button class="btn-back" data-action="go-tree" style="margin-bottom: 0;">← Chọn lại phác đồ</button>
+            <span id="selectedProtocolDisplay" style="font-weight: 700; color: #1e40af; background: #dbeafe; padding: 6px 12px; border-radius: 6px;">--</span>
+        </div>
+        <h2>Thông số Bệnh nhân & Liều lượng</h2>
+        <div class="form-grid">
+            <div class="form-group"><label>Cân nặng (kg):</label><input type="number" id="weight" step="0.1" value="65"></div>
+            <div class="form-group"><label>Chiều cao (cm):</label><input type="number" id="height" step="1" value="155"></div>
+            <div class="form-group"><label>Tuổi:</label><input type="number" id="age" value="55"></div>
+            <div class="form-group">
+                <label>Giới tính:</label>
+                <select id="gender">
                     <option value="male">Nam</option>
                     <option value="female" selected>Nữ</option>
                 </select>
             </div>
-
             <div class="form-group">
-                <label for="creatinine">Creatinin máu:</label>
+                <label>Creatinin:</label>
                 <div style="display: flex; gap: 6px;">
-                    <input type="number" id="creatinine" step="1" value="60" style="flex: 2;" oninput="calculateAndRender()">
-                    <select id="creatinineUnit" style="flex: 1;" onchange="calculateAndRender()">
-                        <option value="umol">µmol/L</option>
-                        <option value="mg">mg/dL</option>
+                    <input type="number" id="creatinine" value="60" style="flex: 2;">
+                    <select id="creatinineUnit" style="flex: 1;">
+                        <option value="umol">µmol/L</option><option value="mg">mg/dL</option>
                     </select>
                 </div>
             </div>
-
             <div class="form-group" id="carboplatinAucGroup" style="display: none;">
-                <label for="carboplatinAucValue">Carboplatin AUC (Calvert):</label>
-                <select id="carboplatinAucValue" onchange="calculateAndRender()">
+                <label>Carboplatin AUC mục tiêu:</label>
+                <select id="carboplatinAucValue">
                     <option value="4">AUC 4</option>
                     <option value="5" selected>AUC 5</option>
                     <option value="6">AUC 6</option>
@@ -451,305 +276,497 @@
             </div>
         </div>
 
-        <h3 style="font-size: 1rem; margin-top: 20px; color: #334155;">Thăm khám lâm sàng trước điều trị</h3>
-        <div class="form-grid">
-            <div class="form-group">
-                <label for="clinicalState">Tình trạng chung:</label>
-                <input type="text" id="clinicalState" value="bệnh nhân tỉnh, không sốt, không khó thở, thể trạng trung bình" oninput="updateSummaryText()">
-            </div>
-            <div class="form-group">
-                <label for="heartExam">Tim mạch:</label>
-                <input type="text" id="heartExam" value="tim đều rõ" oninput="updateSummaryText()">
-            </div>
-            <div class="form-group">
-                <label for="lungExam">Hô hấp (Phổi):</label>
-                <input type="text" id="lungExam" value="phổi không nghe ran" oninput="updateSummaryText()">
-            </div>
-            <div class="form-group">
-                <label for="abdomenExam">Tiêu hóa (Bụng):</label>
-                <input type="text" id="abdomenExam" value="bụng mềm, gan lách không lớn" oninput="updateSummaryText()">
-            </div>
-            <div class="form-group" style="grid-column: 1 / -1;">
-                <label for="conclusionExam">Kết luận:</label>
-                <input type="text" id="conclusionExam" value="Đủ khả năng điều trị" oninput="updateSummaryText()">
+        <div class="metrics-bar">
+            <div class="metric-item"><span class="metric-label">BMI</span><span class="metric-value" id="resBmi">-</span></div>
+            <div class="metric-item"><span class="metric-label">BSA (Du Bois)</span><span class="metric-value" id="resBsa">-</span></div>
+            <div class="metric-item"><span class="metric-label">CrCl (Cockcroft)</span><span class="metric-value" id="resCrcl">-</span></div>
+        </div>
+
+        <div style="display: flex; gap: 16px; margin-bottom: 20px; background: #f1f5f9; padding: 12px; border-radius: 6px;">
+            <div class="form-group" style="flex: 1;"><label>Chu kỳ thứ:</label><input type="number" id="cycleNumber" value="1" min="1"></div>
+            <div class="form-group" style="flex: 2;">
+                <label>Tỷ lệ liều (%):</label>
+                <select id="dosePercentage">
+                    <option value="1">100% (Nguyên liều)</option>
+                    <option value="0.85">85% (Giảm liều còn 85%)</option>
+                    <option value="0.80">80% (Giảm liều còn 80%)</option>
+                    <option value="0.75">75% (Giảm liều còn 75%)</option>
+                </select>
             </div>
         </div>
 
-        <h2 style="margin-top: 24px;">Kết quả & Hướng dẫn Điều trị Chi tiết</h2>
-        
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <div class="metric-label">BMI</div>
-                <div class="metric-value" id="resBmi">-</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">BSA (Du Bois)</div>
-                <div class="metric-value" id="resBsa">-</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">CrCl (Cockcroft-Gault)</div>
-                <div class="metric-value" id="resCrcl">-</div>
-            </div>
-        </div>
-
-        <h3>Bảng Liều Lượng & Hướng dẫn Pha / Truyền</h3>
         <table class="dose-table">
             <thead>
-                <tr>
-                    <th>Thuốc & Phác đồ</th>
-                    <th>Liều chuẩn</th>
-                    <th>Liều lý thuyết</th>
-                    <th>Liều thực dùng (Đã áp dụng tỷ lệ)</th>
-                    <th>Hướng dẫn Sử dụng & Lưu ý</th>
-                </tr>
+                <tr><th>Thuốc & Lịch dùng</th><th>Khoảng liều chuẩn</th><th>Liều lý thuyết</th><th>Liều y lệnh (mg)</th><th>Dung môi & Truyền / Uống</th></tr>
             </thead>
-            <tbody id="doseTableBody">
-            </tbody>
+            <tbody id="doseTableBody"></tbody>
         </table>
 
-        <h3>Bản Tóm Tắt Định Dạng Theo Mẫu Y Lệnh</h3>
+        <!-- BẢNG Y LỆNH TÓM TẮT THU GỌN / MỞ RỘNG -->
         <div class="summary-box" id="summaryTextOutput"></div>
 
-        <div class="action-bar">
-            <button class="btn-secondary" onclick="copySummaryText()">Sao chép Nội dung Y lệnh</button>
+        <div class="action-btn-group">
+            <button class="btn-secondary" data-action="toggle-summary" style="flex: 1;">↕️ Thu gọn / Mở rộng Y Lệnh</button>
+            <button class="btn-primary" data-action="copy" style="flex: 2;">📋 Sao chép Y Lệnh HIS</button>
         </div>
     </div>
 </div>
 
 <script>
-    // ----- DATA CONFIGURATION -----
+    // ----- DANH MỤC THUỐC CHUẨN XÁC NCCN & HƯỚNG DẪN LÂM SÀNG -----
     const drugConfigs = {
-        paclitaxel: { name: "Paclitaxel", type: "bsa", defaultDoseMin: 175, defaultDoseMax: 200, formulaDesc: "175-200mg/m2", dilution: "Pha 250ml-500ml NaCl 0.9% hoặc G5%. Dùng dây không DEHP, màng lọc 0.22 micron.", infusionRate: "Truyền TM trong 3 giờ." },
-        carboplatin: { name: "Carboplatin", type: "calvert", formulaDesc: "AUC × (CrCl + 25)", dilution: "Pha trong 250ml G5% hoặc NaCl 0.9%.", infusionRate: "Truyền TM 30 - 60 phút." },
-        pemetrexed: { name: "Pemetrexed", type: "bsa", defaultDoseMin: 500, defaultDoseMax: 500, formulaDesc: "500mg/m2", dilution: "Hoàn nguyên NaCl 0.9%, pha loãng 100ml NaCl 0.9%.", infusionRate: "Truyền TM 10 phút. Bổ sung Acid Folic & Vit B12." },
-        gemcitabine: { name: "Gemcitabine", type: "bsa", defaultDoseMin: 1000, defaultDoseMax: 1250, formulaDesc: "1000-1250mg/m2", dilution: "Pha tối thiểu 250ml-500ml NaCl 0.9%.", infusionRate: "Truyền TM 30 phút." },
-        cisplatin: { name: "Cisplatin", type: "bsa", defaultDoseMin: 75, defaultDoseMax: 75, formulaDesc: "75mg/m2", dilution: "Pha 500ml NaCl 0.9%. Bắt buộc truyền bù dịch & lợi tiểu.", infusionRate: "Truyền TM 2-4 giờ." },
-        navelbine: { name: "Navelbine IV", type: "bsa", defaultDoseMin: 25, defaultDoseMax: 30, formulaDesc: "25-30mg/m2", dilution: "Pha 50ml-125ml NaCl 0.9%.", infusionRate: "Truyền TM nhanh 6-10 phút, xả đuổi NaCl 0.9%." },
-        navelbine_oral: { name: "Navelbine Uống", type: "bsa", defaultDoseMin: 60, defaultDoseMax: 80, formulaDesc: "60-80mg/m2", dilution: "Viên nang mềm.", infusionRate: "Uống nguyên viên với nước lúc đói (Ngày 1, Ngày 8)." },
-        docetaxel: { name: "Docetaxel", type: "bsa", defaultDoseMin: 75, defaultDoseMax: 75, formulaDesc: "75mg/m2", dilution: "Pha 250ml NaCl 0.9% hoặc G5%.", infusionRate: "Truyền TM 1 giờ (dùng Corticoid dự phòng)." },
-        pembrolizumab: { name: "Pembrolizumab", type: "fixed", fixedDose: 200, formulaDesc: "200 mg cố định", dilution: "Pha loãng túi NaCl 0.9% / G5% (nồng độ 1-9 mg/ml).", infusionRate: "Truyền TM 30 phút qua màng lọc vô trùng." },
-        atezolizumab: { name: "Atezolizumab", type: "fixed", fixedDose: 1200, formulaDesc: "1200 mg cố định", dilution: "Pha loãng túi NaCl 0.9% 250ml.", infusionRate: "Truyền TM 60 phút." },
-        nivolumab: { name: "Nivolumab", type: "fixed", fixedDose: 240, formulaDesc: "240 mg cố định", dilution: "Pha loãng với NaCl 0.9% / G5%.", infusionRate: "Truyền TM 30 phút." }
+        docetaxel_tpf: { name: "Docetaxel", type: "bsa", dose: 75, formula: "75mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250ml NaCl 0.9%. Dùng Dexamethasone dự phòng." },
+        cisplatin_tpf: { name: "Cisplatin", type: "bsa", dose: 75, formula: "75mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 500ml NaCl 0.9%. Truyền bù dịch, lợi tiểu." },
+        "5_fu_tpf": { name: "5-Fluorouracil", type: "bsa", dose: 750, formula: "750mg/m2/ngày", schedule: "Ngày 1 - 4 (Truyền liên tục 96h)", dilution: "Pha bơm truyền liên tục 24h/ngày × 4 ngày." },
+        
+        docetaxel_std: { name: "Docetaxel", type: "bsa_range", minDose: 75, maxDose: 100, formula: "75mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250ml NaCl 0.9%." },
+        paclitaxel_std: { name: "Paclitaxel", type: "bsa_range", minDose: 175, maxDose: 200, formula: "175mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250-500ml NaCl 0.9%. Dây không DEHP." },
+        nab_paclitaxel: { name: "Nab-Paclitaxel", type: "bsa", dose: 100, formula: "100mg/m2", schedule: "Ngày 1, 8, 15 (Mỗi 3 tuần)", dilution: "Pha 100ml NaCl 0.9%. Truyền 30 phút." },
+        paclitaxel_weekly: { name: "Paclitaxel Hàng tuần", type: "bsa", dose: 80, formula: "80mg/m2", schedule: "Hàng tuần", dilution: "Pha 250ml NaCl 0.9%." },
+        paclitaxel_crt_weekly: { name: "Paclitaxel", type: "bsa", dose: 45, formula: "45mg/m2", schedule: "Hàng tuần + Xạ trị", dilution: "Pha 250ml NaCl 0.9%." },
+        gemcitabine_std: { name: "Gemcitabine", type: "bsa_range", minDose: 1000, maxDose: 1250, formula: "1000mg/m2", schedule: "Ngày 1, 8 (Mỗi 3 tuần)", dilution: "Pha 250ml NaCl 0.9%. Truyền 30 phút." },
+        gemcitabine_mono: { name: "Gemcitabine", type: "bsa", dose: 1000, formula: "1000mg/m2", schedule: "Ngày 1, 8, 15 (Mỗi 4 tuần)", dilution: "Pha 250ml NaCl 0.9%." },
+        vinorelbine_std: { name: "Vinorelbine", type: "bsa_range", minDose: 25, maxDose: 30, formula: "25mg/m2", schedule: "Ngày 1, 8 (Mỗi 3 tuần)", dilution: "Pha 50ml NaCl 0.9%. Truyền 10 phút." },
+        
+        capecitabine: { name: "Capecitabine", type: "bsa", dose: 1000, formula: "1000mg/m2", schedule: "Ngày 1 - 14 (Uống sau ăn, nghỉ 7 ngày)", dilution: "Thuốc uống viên nén." },
+        tegafur_maint: { name: "Tegafur/Gimeracil/Oteracil", type: "fixed_bsa_tier", formula: "Theo BSA", schedule: "Ngày 1 - 28 (Nghỉ 14 ngày hoặc uống liên tục)", dilution: "Thuốc uống viên nén." },
+
+        cisplatin_std: { name: "Cisplatin", type: "bsa_range", minDose: 75, maxDose: 100, formula: "75mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 500ml NaCl 0.9%. Truyền bù dịch." },
+        cisplatin_gct: { name: "Cisplatin (BEP/EP/VIP)", type: "bsa", dose: 20, formula: "20mg/m2/ngày", schedule: "Ngày 1 đến 5 (Mỗi 3 tuần)", dilution: "Pha 500ml NaCl 0.9%. Truyền bù dịch ép." },
+        cisplatin_crt_high: { name: "Cisplatin", type: "bsa", dose: 100, formula: "100mg/m2", schedule: "Ngày 1, 22, 43 (Xạ trị đồng thời)", dilution: "Pha 500ml NaCl 0.9%. Bù dịch ép." },
+        cisplatin_crt_weekly: { name: "Cisplatin", type: "bsa", dose: 40, formula: "40mg/m2", schedule: "Hàng tuần (Ngày 1, 8, 15, 22...)", dilution: "Pha 250ml NaCl 0.9%." },
+        
+        carboplatin: { name: "Carboplatin", type: "calvert_range", formula: "AUC × (CrCl + 25)", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250ml G5%." },
+        "5_fu_extreme": { name: "5-Fluorouracil", type: "bsa", dose: 1000, formula: "1000mg/m2/ngày", schedule: "Ngày 1 - 4 (Truyền liên tục 96h)", dilution: "Pha bơm truyền liên tục 24h/ngày × 4 ngày." },
+        
+        cetuximab_load: { name: "Cetuximab", type: "bsa", dose: 400, formula: "400mg/m2", schedule: "Ngày 1 (Trước hóa chất/xạ trị 1 tuần)", dilution: "Truyền TM trong 120 phút qua màng lọc." },
+        cetuximab_maint: { name: "Cetuximab", type: "bsa", dose: 250, formula: "250mg/m2", schedule: "Hàng tuần", dilution: "Truyền TM trong 60 phút qua màng lọc." },
+
+        pemetrexed: { name: "Pemetrexed", type: "bsa", dose: 500, formula: "500mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 100ml NaCl 0.9%. Kèm B12/Folic acid." },
+        etoposide: { name: "Etoposide", type: "bsa_range", minDose: 80, maxDose: 120, formula: "100mg/m2/ngày", schedule: "Ngày 1, 2, 3 (Mỗi 3 tuần)", dilution: "Pha 500ml NaCl 0.9%. Truyền 60 phút." },
+        etoposide_gct: { name: "Etoposide (BEP/EP/VIP)", type: "bsa", dose: 100, formula: "100mg/m2/ngày", schedule: "Ngày 1 đến 5 (Mỗi 3 tuần)", dilution: "Pha 500ml NaCl 0.9%." },
+        bleomycin: { name: "Bleomycin", type: "fixed", dose: 30, formula: "30 UI (Đơn vị)", schedule: "Ngày 1, 8, 15 (Mỗi 3 tuần)", dilution: "Pha 100ml NaCl 0.9%. Theo dõi xơ phổi." },
+        ifosfamide: { name: "Ifosfamide", type: "bsa", dose: 1200, formula: "1200mg/m2/ngày", schedule: "Ngày 1 đến 5 (Mỗi 3 tuần)", dilution: "Pha 500ml NaCl 0.9%. Dùng kèm Mesna giải độc." },
+        mesna: { name: "Mesna", type: "bsa", dose: 1200, formula: "1200mg/m2/ngày (100% liều Ifosfamide)", schedule: "Ngày 1 đến 5 (Phân liều 0h, 4h, 8h)", dilution: "Truyền TM cùng và sau Ifosfamide." },
+        cyclophosphamide_cap: { name: "Cyclophosphamide", type: "bsa", dose: 500, formula: "500mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250ml NaCl 0.9%." },
+        cyclophosphamide_chop: { name: "Cyclophosphamide", type: "bsa", dose: 750, formula: "750mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250ml NaCl 0.9%." },
+        doxorubicin_cap: { name: "Doxorubicin", type: "bsa", dose: 50, formula: "50mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Truyền tĩnh mạch chậm." },
+        doxorubicin_chop: { name: "Doxorubicin", type: "bsa", dose: 50, formula: "50mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Truyền tĩnh mạch chậm." },
+        vincristine: { name: "Vincristine", type: "bsa", dose: 0.6, formula: "0.6mg/m2 (Tối đa 2mg)", schedule: "Ngày 1, 8 (Mỗi 3 tuần)", dilution: "Tiêm TM chậm qua dây truyền." },
+        vincristine_chop: { name: "Vincristine", type: "bsa", dose: 1.4, formula: "1.4mg/m2 (Tối đa 2mg)", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Tiêm TM chậm." },
+        vinblastine: { name: "Vinblastine", type: "bsa", dose: 0.11, formula: "0.11mg/kg/ngày", schedule: "Ngày 1, 2 (Mỗi 3 tuần)", dilution: "Tiêm TM chậm." },
+        
+        rituximab: { name: "Rituximab", type: "bsa", dose: 375, formula: "375mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha NaCl 0.9%. Truyền tăng tốc độ." },
+        prednisone: { name: "Prednisone", type: "bsa", dose: 100, formula: "100mg/ngày", schedule: "Ngày 1 đến 5 (Uống sau ăn sáng)", dilution: "Thuốc uống viên nén." },
+        
+        irinotecan: { name: "Irinotecan", type: "bsa_range", minDose: 60, maxDose: 65, formula: "60mg/m2", schedule: "Ngày 1, 8, 15", dilution: "Pha 250ml NaCl 0.9% hoặc G5%." },
+        topotecan: { name: "Topotecan", type: "bsa", dose: 1.5, formula: "1.5mg/m2/ngày", schedule: "Ngày 1 đến 5", dilution: "Pha 100ml NaCl 0.9%." },
+        lurbinectedin: { name: "Lurbinectedin", type: "bsa", dose: 3.2, formula: "3.2mg/m2", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250ml NaCl 0.9% hoặc G5%. Truyền 60 phút." },
+
+        pembrolizumab: { name: "Pembrolizumab", type: "fixed", dose: 200, formula: "200mg cố định", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 100ml NaCl 0.9%." },
+        nivolumab: { name: "Nivolumab", type: "fixed", dose: 240, formula: "240mg cố định", schedule: "Ngày 1 (Mỗi 2 tuần)", dilution: "Pha 100ml NaCl 0.9%." },
+        atezolizumab: { name: "Atezolizumab", type: "fixed", dose: 1200, formula: "1200mg cố định", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250ml NaCl 0.9%." },
+        durvalumab: { name: "Durvalumab", type: "fixed", dose: 1500, formula: "1500mg cố định", schedule: "Ngày 1 (Mỗi 4 tuần)", dilution: "Pha 250ml NaCl 0.9%." },
+        ipilimumab: { name: "Ipilimumab", type: "weight", weightMul: 1, formula: "1mg/kg", schedule: "Ngày 1 (Mỗi 6 tuần)", dilution: "Pha 100ml NaCl 0.9%." },
+        bevacizumab: { name: "Bevacizumab", type: "weight", weightMul: 15, formula: "15mg/kg", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 100ml NaCl 0.9%." },
+        ramucirumab: { name: "Ramucirumab", type: "weight", weightMul: 10, formula: "10mg/kg", schedule: "Ngày 1 (Mỗi 3 tuần)", dilution: "Pha 250ml NaCl 0.9%." },
+        sunitinib: { name: "Sunitinib", type: "fixed", dose: 37.5, formula: "37.5mg/ngày cố định", schedule: "Uống hàng ngày liên tục", dilution: "Thuốc uống viên nang." },
+        lenvatinib: { name: "Lenvatinib", type: "fixed", dose: 24, formula: "24mg/ngày cố định", schedule: "Uống hàng ngày liên tục", dilution: "Thuốc uống viên nang." },
+        everolimus: { name: "Everolimus", type: "fixed", dose: 10, formula: "10mg/ngày cố định", schedule: "Uống hàng ngày liên tục", dilution: "Thuốc uống viên nén." },
+        octreotide_lar: { name: "Octreotide LAR", type: "fixed", dose: 30, formula: "30mg cố định", schedule: "Tiêm bắp sâu mỗi 4 tuần", dilution: "Hỗn dịch tiêm bắp." },
+        lanreotide: { name: "Lanreotide", type: "fixed", dose: 120, formula: "120mg cố định", schedule: "Tiêm dưới da sâu mỗi 4 tuần", dilution: "Bơm tiêm đóng sẵn." },
+        tarlatamab: { name: "Tarlatamab", type: "fixed", dose: 10, formula: "10mg cố định", schedule: "Ngày 1, 15", dilution: "Pha loãng túi IV truyền TM." }
     };
 
-    const protocolDrugs = {
-        paclitaxel_carboplatin: ["paclitaxel", "carboplatin"],
-        cisplatin_gemcitabine: ["gemcitabine", "cisplatin"],
-        navelbine_cisplatin: ["navelbine", "cisplatin"],
-        pemetrexed_cisplatin: ["pemetrexed", "cisplatin"],
-        pemetrexed_carboplatin: ["pemetrexed", "carboplatin"],
-        pembrolizumab_mono: ["pembrolizumab"],
-        pembrolizumab_chemo: ["pembrolizumab", "paclitaxel", "carboplatin"],
-        atezolizumab_mono: ["atezolizumab"],
-        nivolumab_mono: ["nivolumab"],
-        pemetrexed_single: ["pemetrexed"],
-        docetaxel_single: ["docetaxel"],
-        gemcitabine_single: ["gemcitabine"],
-        paclitaxel_single: ["paclitaxel"],
-        navelbine_oral_single: ["navelbine_oral"]
-    };
+    // ----- DATABASE PHÁC ĐỒ TOÀN DIỆN (HNSCC, LUNG, MEDIASTINUM) -----
+    const allProtocols = [
+        // HNSCC
+        { id: "hn_ind_tax323", name: "TAX 323 / TAX 324: TPF (Docetaxel + Cisplatin + 5-FU)", drugs: ["docetaxel_tpf", "cisplatin_tpf", "5_fu_tpf"], group: "1. Hóa trị Dẫn đầu (Induction Chemotherapy)", tags: ["hn_induction"] },
+        { id: "hn_ind_tcf_carbo", name: "TAX 323 Alternative: TCF (Docetaxel + Carboplatin + 5-FU)", drugs: ["docetaxel_tpf", "carboplatin", "5_fu_tpf"], group: "1. Hóa trị Dẫn đầu (Induction Chemotherapy)", tags: ["hn_induction"] },
+        { id: "hn_ind_gp", name: "Gemcitabine + Cisplatin", drugs: ["gemcitabine_std", "cisplatin_std"], group: "1. Hóa trị Dẫn đầu (Induction Chemotherapy)", tags: ["hn_induction"] },
+        { id: "hn_ind_gc", name: "Gemcitabine + Carboplatin", drugs: ["gemcitabine_std", "carboplatin"], group: "1. Hóa trị Dẫn đầu (Induction Chemotherapy)", tags: ["hn_induction"] },
+        { id: "hn_ind_pf", name: "PF Classic: Cisplatin + 5-FU", drugs: ["cisplatin_tpf", "5_fu_tpf"], group: "1. Hóa trị Dẫn đầu (Induction Chemotherapy)", tags: ["hn_induction"] },
+        { id: "hn_ind_carbo_fu", name: "Carbo-FU: Carboplatin + 5-FU", drugs: ["carboplatin", "5_fu_tpf"], group: "1. Hóa trị Dẫn đầu (Induction Chemotherapy)", tags: ["hn_induction"] },
 
-    let currentDiseasePath = "";
+        { id: "hn_loc_cis_high", name: "RTOG 85-31: Cisplatin 100 mg/m² mỗi 3 tuần + Xạ trị", drugs: ["cisplatin_crt_high"], group: "2. Hóa xạ đồng thời (Locally Advanced / CRT)", tags: ["hn_locally"] },
+        { id: "hn_loc_cis_weekly", name: "Weekly Cisplatin: Cisplatin 40 mg/m² hàng tuần + Xạ trị", drugs: ["cisplatin_crt_weekly"], group: "2. Hóa xạ đồng thời (Locally Advanced / CRT)", tags: ["hn_locally"] },
+        { id: "hn_loc_pac_weekly", name: "Weekly Paclitaxel: Paclitaxel 45 mg/m² hàng tuần + Xạ trị", drugs: ["paclitaxel_crt_weekly"], group: "2. Hóa xạ đồng thời (Locally Advanced / CRT)", tags: ["hn_locally"] },
+        { id: "hn_loc_carbo_rt", name: "Carboplatin AUC 1.5 - 2 hàng tuần + Xạ trị", drugs: ["carboplatin"], group: "2. Hóa xạ đồng thời (Locally Advanced / CRT)", tags: ["hn_locally"] },
+        { id: "hn_loc_carbo_fu", name: "Carboplatin + 5-FU + Xạ trị", drugs: ["carboplatin", "5_fu_tpf"], group: "2. Hóa xạ đồng thời (Locally Advanced / CRT)", tags: ["hn_locally"] },
+        { id: "hn_loc_bonner", name: "Bonner Trial: Cetuximab + Xạ trị", drugs: ["cetuximab_load", "cetuximab_maint"], group: "2. Hóa xạ đồng thời (Locally Advanced / CRT)", tags: ["hn_locally"] },
 
-    // ----- NAVIGATION LOGIC -----
-    function hideAllScreens() {
+        { id: "hn_maint_tegafur", name: "Tegafur (S-1 / UFT): Duy trì đường uống sau Hóa xạ trị / Phẫu thuật", drugs: ["tegafur_maint"], group: "3. Điều trị Duy trì (Maintenance Therapy)", tags: ["hn_maintenance"] },
+
+        { id: "hn_rm_kn048_mono", name: "KEYNOTE-048: Pembrolizumab đơn trị (PD-L1 CPS ≥ 1)", drugs: ["pembrolizumab"], group: "4A. Miễn dịch / Nhắm đích Bước 1 (Category 1)", tags: ["hn_metastatic"] },
+        { id: "hn_rm_kn048_chemo", name: "KEYNOTE-048: Pembrolizumab + Cisplatin + 5-FU", drugs: ["pembrolizumab", "cisplatin_tpf", "5_fu_extreme"], group: "4A. Miễn dịch / Nhắm đích Bước 1 (Category 1)", tags: ["hn_metastatic"] },
+        { id: "hn_rm_kn048_carbo", name: "KEYNOTE-048: Pembrolizumab + Carboplatin + 5-FU", drugs: ["pembrolizumab", "carboplatin", "5_fu_extreme"], group: "4A. Miễn dịch / Nhắm đích Bước 1 (Category 1)", tags: ["hn_metastatic"] },
+        { id: "hn_rm_extreme_cis", name: "EXTREME Trial: Cetuximab + Cisplatin + 5-FU", drugs: ["cetuximab_load", "cisplatin_tpf", "5_fu_extreme"], group: "4A. Miễn dịch / Nhắm đích Bước 1 (Category 1)", tags: ["hn_metastatic"] },
+        { id: "hn_rm_extreme_carbo", name: "EXTREME Modified: Cetuximab + Carboplatin + 5-FU", drugs: ["cetuximab_load", "carboplatin", "5_fu_extreme"], group: "4A. Miễn dịch / Nhắm đích Bước 1 (Category 1)", tags: ["hn_metastatic"] },
+        { id: "hn_rm_tpex", name: "TPEx Trial: Cetuximab + Docetaxel + Cisplatin", drugs: ["cetuximab_load", "docetaxel_std", "cisplatin_std"], group: "4A. Miễn dịch / Nhắm đích Bước 1 (Category 1)", tags: ["hn_metastatic"] },
+
+        { id: "hn_rm_pacli_cis", name: "Paclitaxel + Cisplatin", drugs: ["paclitaxel_std", "cisplatin_std"], group: "4B. Phác đồ Phối hợp 2 Thuốc", tags: ["hn_metastatic"] },
+        { id: "hn_rm_pacli_carbo", name: "Paclitaxel + Carboplatin", drugs: ["paclitaxel_std", "carboplatin"], group: "4B. Phác đồ Phối hợp 2 Thuốc", tags: ["hn_metastatic"] },
+        { id: "hn_rm_doc_cis", name: "Docetaxel + Cisplatin", drugs: ["docetaxel_std", "cisplatin_std"], group: "4B. Phác đồ Phối hợp 2 Thuốc", tags: ["hn_metastatic"] },
+        { id: "hn_rm_doc_carbo", name: "Docetaxel + Carboplatin", drugs: ["docetaxel_std", "carboplatin"], group: "4B. Phác đồ Phối hợp 2 Thuốc", tags: ["hn_metastatic"] },
+        { id: "hn_rm_gem_cis", name: "Gemcitabine + Cisplatin", drugs: ["gemcitabine_std", "cisplatin_std"], group: "4B. Phác đồ Phối hợp 2 Thuốc", tags: ["hn_metastatic"] },
+        { id: "hn_rm_gem_carbo", name: "Gemcitabine + Carboplatin", drugs: ["gemcitabine_std", "carboplatin"], group: "4B. Phác đồ Phối hợp 2 Thuốc", tags: ["hn_metastatic"] },
+
+        { id: "hn_rm_cm141", name: "CheckMate 141: Nivolumab đơn trị (Tiến triển sau Platinum)", drugs: ["nivolumab"], group: "4C. Đơn trị & Điều trị Bước 2+", tags: ["hn_metastatic"] },
+        { id: "hn_rm_pacli_mono", name: "Paclitaxel đơn trị", drugs: ["paclitaxel_std"], group: "4C. Đơn trị & Điều trị Bước 2+", tags: ["hn_metastatic"] },
+        { id: "hn_rm_doc_mono", name: "Docetaxel đơn trị", drugs: ["docetaxel_std"], group: "4C. Đơn trị & Điều trị Bước 2+", tags: ["hn_metastatic"] },
+        { id: "hn_rm_gem_mono", name: "Gemcitabine đơn trị", drugs: ["gemcitabine_mono"], group: "4C. Đơn trị & Điều trị Bước 2+", tags: ["hn_metastatic"] },
+        { id: "hn_rm_capecitabine", name: "Capecitabine (Xeloda) đơn trị đường uống", drugs: ["capecitabine"], group: "4C. Đơn trị & Điều trị Bước 2+", tags: ["hn_metastatic"] },
+        { id: "hn_rm_tegafur_mono", name: "Tegafur (S-1 / UFT) đơn trị đường uống", drugs: ["tegafur_maint"], group: "4C. Đơn trị & Điều trị Bước 2+", tags: ["hn_metastatic"] },
+
+        // NSCLC
+        { id: "nsclc_neoadj_kn671", name: "KEYNOTE-671: Pembrolizumab + Pemetrexed + Cisplatin (Tiền phẫu Khác vảy)", drugs: ["pembrolizumab", "pemetrexed", "cisplatin_std"], group: "NSCLC Tân Bổ trợ / Bổ trợ (Stage I-III)", tags: ["nsclc_early"] },
+        { id: "nsclc_neoadj_cm816", name: "CheckMate 816: Nivolumab + Paclitaxel + Carboplatin (Tiền phẫu Thể vảy)", drugs: ["nivolumab", "paclitaxel_std", "carboplatin"], group: "NSCLC Tân Bổ trợ / Bổ trợ (Stage I-III)", tags: ["nsclc_early"] },
+        { id: "nsclc_adj_pem_cis", name: "Pemetrexed + Cisplatin", drugs: ["pemetrexed", "cisplatin_std"], group: "NSCLC Tân Bổ trợ / Bổ trợ (Stage I-III)", tags: ["nsclc_early"] },
+        { id: "nsclc_adj_pem_carbo", name: "Pemetrexed + Carboplatin", drugs: ["pemetrexed", "carboplatin"], group: "NSCLC Tân Bổ trợ / Bổ trợ (Stage I-III)", tags: ["nsclc_early"] },
+        { id: "nsclc_adj_gem_cis", name: "Gemcitabine + Cisplatin", drugs: ["gemcitabine_std", "cisplatin_std"], group: "NSCLC Tân Bổ trợ / Bổ trợ (Stage I-III)", tags: ["nsclc_early"] },
+        { id: "nsclc_adj_vin_cis", name: "Vinorelbine + Cisplatin", drugs: ["vinorelbine_std", "cisplatin_std"], group: "NSCLC Tân Bổ trợ / Bổ trợ (Stage I-III)", tags: ["nsclc_early"] },
+        { id: "nsclc_adj_pac_carbo", name: "Paclitaxel + Carboplatin", drugs: ["paclitaxel_std", "carboplatin"], group: "NSCLC Tân Bổ trợ / Bổ trợ (Stage I-III)", tags: ["nsclc_early"] },
+
+        { id: "nsclc_st3_pacific", name: "PACIFIC Trial: Durvalumab (Củng cố sau Hóa xạ đồng thời)", drugs: ["durvalumab"], group: "NSCLC GĐ III - Hóa xạ đồng thời & Củng cố", tags: ["nsclc_stage3"] },
+        { id: "nsclc_st3_pacli_carbo", name: "Hóa xạ đồng thời: Paclitaxel + Carboplatin hàng tuần", drugs: ["paclitaxel_weekly", "carboplatin"], group: "NSCLC GĐ III - Hóa xạ đồng thời & Củng cố", tags: ["nsclc_stage3"] },
+        { id: "nsclc_st3_pem_cis", name: "Hóa xạ đồng thời: Pemetrexed + Cisplatin", drugs: ["pemetrexed", "cisplatin_std"], group: "NSCLC GĐ III - Hóa xạ đồng thời & Củng cố", tags: ["nsclc_stage3"] },
+        { id: "nsclc_st3_pem_carbo", name: "Hóa xạ đồng thời: Pemetrexed + Carboplatin", drugs: ["pemetrexed", "carboplatin"], group: "NSCLC GĐ III - Hóa xạ đồng thời & Củng cố", tags: ["nsclc_stage3"] },
+        { id: "nsclc_st3_eto_cis", name: "Hóa xạ đồng thời: Etoposide + Cisplatin", drugs: ["etoposide", "cisplatin_std"], group: "NSCLC GĐ III - Hóa xạ đồng thời & Củng cố", tags: ["nsclc_stage3"] },
+
+        { id: "nsclc_ns_kn189_carbo", name: "KEYNOTE-189: Pembrolizumab + Pemetrexed + Carboplatin", drugs: ["pembrolizumab", "pemetrexed", "carboplatin"], group: "NSCLC Không vảy - Di căn Bước 1", tags: ["nsclc_met_nonsq"] },
+        { id: "nsclc_ns_kn189_cis", name: "KEYNOTE-189: Pembrolizumab + Pemetrexed + Cisplatin", drugs: ["pembrolizumab", "pemetrexed", "cisplatin_std"], group: "NSCLC Không vảy - Di căn Bước 1", tags: ["nsclc_met_nonsq"] },
+        { id: "nsclc_ns_pem_carbo", name: "Pemetrexed + Carboplatin", drugs: ["pemetrexed", "carboplatin"], group: "NSCLC Không vảy - Di căn Bước 1", tags: ["nsclc_met_nonsq"] },
+        { id: "nsclc_ns_ecog4599", name: "ECOG 4599: Bevacizumab + Paclitaxel + Carboplatin", drugs: ["bevacizumab", "paclitaxel_std", "carboplatin"], group: "NSCLC Không vảy - Di căn Bước 1", tags: ["nsclc_met_nonsq"] },
+        { id: "nsclc_ns_impower150", name: "IMpower150: Atezolizumab + Bevacizumab + Paclitaxel + Carboplatin", drugs: ["atezolizumab", "bevacizumab", "paclitaxel_std", "carboplatin"], group: "NSCLC Không vảy - Di căn Bước 1", tags: ["nsclc_met_nonsq"] },
+        { id: "nsclc_ns_cm9la", name: "CheckMate 9LA: Nivolumab + Ipilimumab + Pemetrexed + Carboplatin", drugs: ["nivolumab", "ipilimumab", "pemetrexed", "carboplatin"], group: "NSCLC Không vảy - Di căn Bước 1", tags: ["nsclc_met_nonsq"] },
+        { id: "nsclc_ns_pembro_mono", name: "Pembrolizumab Đơn trị (Khi PD-L1 TPS ≥ 50%)", drugs: ["pembrolizumab"], group: "NSCLC Không vảy - Di căn Bước 1", tags: ["nsclc_met_nonsq"] },
+
+        { id: "nsclc_sq_kn407", name: "KEYNOTE-407: Pembrolizumab + Paclitaxel + Carboplatin", drugs: ["pembrolizumab", "paclitaxel_std", "carboplatin"], group: "NSCLC Thể vảy - Di căn Bước 1", tags: ["nsclc_met_sq"] },
+        { id: "nsclc_sq_kn407_nab", name: "KEYNOTE-407 Alternative: Pembrolizumab + Nab-Paclitaxel + Carboplatin", drugs: ["pembrolizumab", "nab_paclitaxel", "carboplatin"], group: "NSCLC Thể vảy - Di căn Bước 1", tags: ["nsclc_met_sq"] },
+        { id: "nsclc_sq_cm9la", name: "CheckMate 9LA: Nivolumab + Ipilimumab + Paclitaxel + Carboplatin", drugs: ["nivolumab", "ipilimumab", "paclitaxel_std", "carboplatin"], group: "NSCLC Thể vảy - Di căn Bước 1", tags: ["nsclc_met_sq"] },
+        { id: "nsclc_sq_gem_cis", name: "Gemcitabine + Cisplatin", drugs: ["gemcitabine_std", "cisplatin_std"], group: "NSCLC Thể vảy - Di căn Bước 1", tags: ["nsclc_met_sq"] },
+        { id: "nsclc_sq_gem_carbo", name: "Gemcitabine + Carboplatin", drugs: ["gemcitabine_std", "carboplatin"], group: "NSCLC Thể vảy - Di căn Bước 1", tags: ["nsclc_met_sq"] },
+        { id: "nsclc_sq_pembro_mono", name: "Pembrolizumab Đơn trị (Khi PD-L1 TPS ≥ 50%)", drugs: ["pembrolizumab"], group: "NSCLC Thể vảy - Di căn Bước 1", tags: ["nsclc_met_sq"] },
+
+        { id: "nsclc_b2_revel", name: "REVEL Trial: Ramucirumab + Docetaxel (Bước 2 Tiêu chuẩn)", drugs: ["ramucirumab", "docetaxel_std"], group: "NSCLC Điều trị Bước 2+", tags: ["nsclc_met_nonsq", "nsclc_met_sq"] },
+        { id: "nsclc_b2_doc_mono", name: "Docetaxel Đơn trị", drugs: ["docetaxel_std"], group: "NSCLC Điều trị Bước 2+", tags: ["nsclc_met_nonsq", "nsclc_met_sq"] },
+        { id: "nsclc_b2_pem_mono", name: "Pemetrexed Đơn trị (Chỉ cho Không vảy)", drugs: ["pemetrexed"], group: "NSCLC Điều trị Bước 2+", tags: ["nsclc_met_nonsq"] },
+
+        // SCLC
+        { id: "sclc_es_impower133", name: "IMpower133: Atezolizumab + Carboplatin + Etoposide", drugs: ["atezolizumab", "carboplatin", "etoposide"], group: "SCLC Lan tràn (ES-SCLC) - Bước 1", tags: ["sclc"] },
+        { id: "sclc_es_caspian_carbo", name: "CASPIAN Trial: Durvalumab + Carboplatin + Etoposide", drugs: ["durvalumab", "carboplatin", "etoposide"], group: "SCLC Lan tràn (ES-SCLC) - Bước 1", tags: ["sclc"] },
+        { id: "sclc_es_caspian_cis", name: "CASPIAN Trial: Durvalumab + Cisplatin + Etoposide", drugs: ["durvalumab", "cisplatin_std", "etoposide"], group: "SCLC Lan tràn (ES-SCLC) - Bước 1", tags: ["sclc"] },
+        { id: "sclc_es_ep_carbo", name: "Carboplatin + Etoposide Classic", drugs: ["carboplatin", "etoposide"], group: "SCLC Lan tràn (ES-SCLC) - Bước 1", tags: ["sclc"] },
+        { id: "sclc_es_ep_cis", name: "Cisplatin + Etoposide Classic", drugs: ["cisplatin_std", "etoposide"], group: "SCLC Lan tràn (ES-SCLC) - Bước 1", tags: ["sclc"] },
+
+        { id: "sclc_ls_adriatic", name: "ADRIATIC Trial: Durvalumab (Củng cố sau Hóa xạ GĐ Khu trú)", drugs: ["durvalumab"], group: "SCLC Khu trú (LS-SCLC) - Hóa xạ", tags: ["sclc"] },
+        { id: "sclc_ls_ep_cis", name: "Hóa xạ đồng thời: Cisplatin + Etoposide", drugs: ["cisplatin_std", "etoposide"], group: "SCLC Khu trú (LS-SCLC) - Hóa xạ", tags: ["sclc"] },
+        { id: "sclc_ls_ep_carbo", name: "Hóa xạ đồng thời: Carboplatin + Etoposide", drugs: ["carboplatin", "etoposide"], group: "SCLC Khu trú (LS-SCLC) - Hóa xạ", tags: ["sclc"] },
+
+        { id: "sclc_rel_lurbinectedin", name: "Lurbinectedin (Zepzelca - Bước 2 SCLC Tái phát)", drugs: ["lurbinectedin"], group: "SCLC Tái phát / Bước 2+", tags: ["sclc"] },
+        { id: "sclc_rel_tarlatamab", name: "DeLLphi-301: Tarlatamab (Imdelltra - Kháng thể BiTE Bước 2+)", drugs: ["tarlatamab"], group: "SCLC Tái phát / Bước 2+", tags: ["sclc"] },
+        { id: "sclc_rel_topotecan", name: "Topotecan Đơn trị (Đường tĩnh mạch)", drugs: ["topotecan"], group: "SCLC Tái phát / Bước 2+", tags: ["sclc"] },
+        { id: "sclc_rel_irinotecan", name: "Irinotecan Đơn trị", drugs: ["irinotecan"], group: "SCLC Tái phát / Bước 2+", tags: ["sclc"] },
+
+        // U TRUNG THẤT (MEDIASTINUM)
+        { id: "med_thym_cap", name: "Phác đồ CAP: Cyclophosphamide + Doxorubicin + Cisplatin", drugs: ["cyclophosphamide_cap", "doxorubicin_cap", "cisplatin_tpf"], group: "1. U tuyến ức (Thymoma) - Tiến triển / Di căn", tags: ["thymoma"] },
+        { id: "med_thym_adoc", name: "Phác đồ ADOC: Cisplatin + Doxorubicin + Vincristine + Cyclophosphamide", drugs: ["cisplatin_tpf", "doxorubicin_cap", "vincristine", "cyclophosphamide_cap"], group: "1. U tuyến ức (Thymoma) - Tiến triển / Di căn", tags: ["thymoma"] },
+        { id: "med_thym_ep", name: "Phác đồ PE / EP: Cisplatin + Etoposide", drugs: ["cisplatin_std", "etoposide"], group: "1. U tuyến ức (Thymoma) - Tiến triển / Di căn", tags: ["thymoma"] },
+        
+        { id: "med_tc_carbo_pac", name: "Carboplatin + Paclitaxel (Category 1 cho Ung thư BM Tuyến ức)", drugs: ["carboplatin", "paclitaxel_std"], group: "2. Ung thư biểu mô tuyến ức (Thymic Carcinoma)", tags: ["thymic_ca"] },
+        { id: "med_tc_lenvatinib", name: "REMORA Trial: Lenvatinib 24mg/ngày (Nhắm đích Bước 2+)", drugs: ["lenvatinib"], group: "2. Ung thư biểu mô tuyến ức (Thymic Carcinoma)", tags: ["thymic_ca"] },
+        { id: "med_tc_sunitinib", name: "Sunitinib 37.5mg/ngày (Nhắm đích Bước 2+)", drugs: ["sunitinib"], group: "2. Ung thư biểu mô tuyến ức (Thymic Carcinoma)", tags: ["thymic_ca"] },
+        { id: "med_tc_pembro", name: "Pembrolizumab Đơn trị (Miễn dịch Bước 2+)", drugs: ["pembrolizumab"], group: "2. Ung thư biểu mô tuyến ức (Thymic Carcinoma)", tags: ["thymic_ca"] },
+        { id: "med_tc_everolimus", name: "Everolimus 10mg/ngày (Nhắm m-TOR Bước 2+)", drugs: ["everolimus"], group: "2. Ung thư biểu mô tuyến ức (Thymic Carcinoma)", tags: ["thymic_ca"] },
+
+        { id: "med_gct_bep", name: "BEP Classic: Bleomycin + Etoposide + Cisplatin (1st-line)", drugs: ["bleomycin", "etoposide_gct", "cisplatin_gct"], group: "3. U tế bào mầm trung thất - Điều trị Bước 1", tags: ["gct_first"] },
+        { id: "med_gct_ep", name: "EP Protocol: Etoposide + Cisplatin (Chống chỉ định Bleomycin)", drugs: ["etoposide_gct", "cisplatin_gct"], group: "3. U tế bào mầm trung thất - Điều trị Bước 1", tags: ["gct_first"] },
+
+        { id: "med_gct_vip", name: "VIP Protocol: Etoposide + Ifosfamide + Cisplatin + Mesna", drugs: ["etoposide_gct", "ifosfamide", "cisplatin_gct", "mesna"], group: "4. U tế bào mầm trung thất - Tái phát / Cứu vét", tags: ["gct_salvage"] },
+        { id: "med_gct_tip", name: "TIP Salvage: Paclitaxel + Ifosfamide + Cisplatin + Mesna", drugs: ["paclitaxel_std", "ifosfamide", "cisplatin_gct", "mesna"], group: "4. U tế bào mầm trung thất - Tái phát / Cứu vét", tags: ["gct_salvage"] },
+        { id: "med_gct_veip", name: "VeIP Salvage: Vinblastine + Ifosfamide + Cisplatin + Mesna", drugs: ["vinblastine", "ifosfamide", "cisplatin_gct", "mesna"], group: "4. U tế bào mầm trung thất - Tái phát / Cứu vét", tags: ["gct_salvage"] },
+
+        { id: "med_net_octreotide", name: "Octreotide LAR 30mg (Tiêm bắp mỗi 4 tuần)", drugs: ["octreotide_lar"], group: "5. U Neuroendocrine Trung thất (NET / Carcinoid)", tags: ["med_net"] },
+        { id: "med_net_lanreotide", name: "Lanreotide 120mg (Tiêm dưới da mỗi 4 tuần)", drugs: ["lanreotide"], group: "5. U Neuroendocrine Trung thất (NET / Carcinoid)", tags: ["med_net"] },
+        { id: "med_net_ep", name: "Etoposide + Cisplatin (Dành cho NET độ ác tính cao)", drugs: ["etoposide", "cisplatin_std"], group: "5. U Neuroendocrine Trung thất (NET / Carcinoid)", tags: ["med_net"] },
+
+        { id: "med_lym_da_epoch_r", name: "DA-EPOCH-R: Rituximab + Etoposide + Prednisone + Vincristine + Doxorubicin + Cyclophosphamide", drugs: ["rituximab", "etoposide", "prednisone", "vincristine", "doxorubicin_chop", "cyclophosphamide_chop"], group: "6. U Lympho Trung thất Nguyên phát (PMLBCL)", tags: ["med_lymphoma"] },
+        { id: "med_lym_rchop", name: "R-CHOP Classic: Rituximab + Cyclophosphamide + Doxorubicin + Vincristine + Prednisone", drugs: ["rituximab", "cyclophosphamide_chop", "doxorubicin_chop", "vincristine_chop", "prednisone"], group: "6. U Lympho Trung thất Nguyên phát (PMLBCL)", tags: ["med_lymphoma"] }
+    ];
+
+    let currentSpecialty = 'hnscc';
+    let selectedProtocolDrugs = [];
+
+    function goToScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.getElementById('mainHeader').classList.toggle('hidden', id !== 'screenDisease');
     }
 
-    function goToScreen(screenId) {
-        hideAllScreens();
-        document.getElementById(screenId).classList.add('active');
-    }
-
-    function goToProtocolSelect(pathName) {
-        currentDiseasePath = pathName;
-        document.getElementById("lblSelectedPath").innerText = pathName;
-        document.getElementById("protocolSelect").value = "";
-        onProtocolSelected();
-        goToScreen('screenProtocolSelection');
-    }
-
-    function goBackToDiseaseScreen() {
-        if(currentDiseasePath.includes("Phổi")) goToScreen('screenLungCancer');
-        else if(currentDiseasePath.includes("Đầu Cổ")) goToScreen('screenHeadNeck');
-        else goToScreen('screenWelcome');
-    }
-
-    function onProtocolSelected() {
-        const val = document.getElementById("protocolSelect").value;
-        const btn = document.getElementById("btnNextToStep3");
-        if (val !== "") {
-            btn.disabled = false;
-            btn.style.opacity = "1";
-            btn.style.cursor = "pointer";
-        } else {
-            btn.disabled = true;
-            btn.style.opacity = "0.6";
-            btn.style.cursor = "not-allowed";
+    // EVENT DELEGATION
+    document.addEventListener('click', function(e) {
+        const target = e.target.closest('[data-action]');
+        if(!target) return;
+        
+        const action = target.getAttribute('data-action');
+        if(action === 'open-spec') {
+            const spec = target.getAttribute('data-spec');
+            currentSpecialty = spec;
+            if(spec === 'lung') goToScreen('screenLungMain');
+            else if(spec === 'hnscc') goToScreen('screenHnMain');
+            else if(spec === 'mediastinum') goToScreen('screenMediastinumMain');
+        } else if(action === 'go-home') {
+            goToScreen('screenDisease');
+        } else if(action === 'go-tree') {
+            if(currentSpecialty === 'lung') goToScreen('screenLungMain');
+            else if(currentSpecialty === 'hnscc') goToScreen('screenHnMain');
+            else if(currentSpecialty === 'mediastinum') goToScreen('screenMediastinumMain');
+        } else if(action === 'patient-info-lung') {
+            setupPatientScreen("protocolSelect");
+        } else if(action === 'patient-info-hn') {
+            setupPatientScreen("hnProtocolSelect");
+        } else if(action === 'patient-info-med') {
+            setupPatientScreen("medProtocolSelect");
+        } else if(action === 'toggle-summary') {
+            document.getElementById("summaryTextOutput").classList.toggle("collapsed");
+        } else if(action === 'copy') {
+            navigator.clipboard.writeText(document.getElementById("summaryTextOutput").innerText).then(() => alert("Đã sao chép y lệnh!"));
         }
+    });
+
+    document.addEventListener('change', function(e) {
+        const id = e.target.id;
+        if(['lungCellType', 'lungStage', 'lungHistology'].includes(id)) {
+            updateLungTree();
+        } else if(id === 'hnStage') {
+            updateHnTree();
+        } else if(id === 'medHistology') {
+            updateMedTree();
+        } else if(id === 'protocolSelect') {
+            document.getElementById("btnNextToPatient").disabled = !e.target.value;
+        } else if(id === 'hnProtocolSelect') {
+            document.getElementById("btnHnNextToPatient").disabled = !e.target.value;
+        } else if(id === 'medProtocolSelect') {
+            document.getElementById("btnMedNextToPatient").disabled = !e.target.value;
+        } else if(['weight', 'height', 'age', 'gender', 'creatinine', 'creatinineUnit', 'carboplatinAucValue', 'cycleNumber', 'dosePercentage'].includes(id)) {
+            calculateAndRender();
+        }
+    });
+
+    document.addEventListener('input', function(e) {
+        if(['weight', 'height', 'age', 'creatinine', 'cycleNumber'].includes(e.target.id)) {
+            calculateAndRender();
+        } else if(e.target.classList.contains('actual-dose-input')) {
+            updateSummaryText();
+        }
+    });
+
+    function updateHnTree() {
+        const stage = document.getElementById("hnStage").value;
+        let tag = (stage === "induction") ? "hn_induction" : ((stage === "locally") ? "hn_locally" : ((stage === "maintenance") ? "hn_maintenance" : ((stage === "metastatic") ? "hn_metastatic" : "")));
+        const group = document.getElementById("hnProtocolSelectionGroup");
+        group.style.display = tag ? "block" : "none";
+        if(tag) buildDropdown("hnProtocolSelect", "btnHnNextToPatient", tag);
     }
 
-    function goToStep3() {
-        const select = document.getElementById("protocolSelect");
-        const selectedText = select.options[select.selectedIndex].text;
-        const selectedVal = select.value;
+    function updateLungTree() {
+        const type = document.getElementById("lungCellType").value;
+        const stage = document.getElementById("lungStage").value;
+        const histology = document.getElementById("lungHistology").value;
+        document.getElementById("lungStageGroup").style.display = type === "nsclc" ? "flex" : "none";
+        document.getElementById("lungHistologyGroup").style.display = (type === "nsclc" && stage === "metastatic") ? "flex" : "none";
+        
+        let tag = "";
+        if(type === "sclc") tag = "sclc";
+        else if(type === "nsclc" && stage === "early") tag = "nsclc_early";
+        else if(type === "nsclc" && stage === "locally") tag = "nsclc_stage3";
+        else if(type === "nsclc" && stage === "metastatic" && histology === "nonsquamous") tag = "nsclc_met_nonsq";
+        else if(type === "nsclc" && stage === "metastatic" && histology === "squamous") tag = "nsclc_met_sq";
 
-        if (!selectedVal) return;
+        const group = document.getElementById("protocolSelectionGroup");
+        group.style.display = tag ? "block" : "none";
+        if(tag) buildDropdown("protocolSelect", "btnNextToPatient", tag);
+    }
 
-        document.getElementById("selectedProtocolDisplay").innerText = selectedText;
+    function updateMedTree() {
+        const tag = document.getElementById("medHistology").value;
+        const group = document.getElementById("medProtocolSelectionGroup");
+        group.style.display = tag ? "block" : "none";
+        if(tag) buildDropdown("medProtocolSelect", "btnMedNextToPatient", tag);
+    }
+
+    function buildDropdown(selectId, btnId, tag) {
+        const sel = document.getElementById(selectId);
+        sel.innerHTML = '<option value="">-- Chọn Phác Đồ Lâm Sàng --</option>';
+        
+        const filtered = allProtocols.filter(p => p.tags.includes(tag));
+        const groups = {};
+        filtered.forEach(p => {
+            if(!groups[p.group]) groups[p.group] = [];
+            groups[p.group].push(p);
+        });
+
+        for (const [groupName, protocols] of Object.entries(groups)) {
+            let optgroup = document.createElement("optgroup");
+            optgroup.label = `--- ${groupName} ---`;
+            protocols.forEach(p => {
+                let option = document.createElement("option");
+                option.value = p.id;
+                option.innerText = p.name;
+                optgroup.appendChild(option);
+            });
+            sel.appendChild(optgroup);
+        }
+        document.getElementById(btnId).disabled = true;
+    }
+
+    function setupPatientScreen(selectId) {
+        const sel = document.getElementById(selectId);
+        document.getElementById("selectedProtocolDisplay").innerText = sel.options[sel.selectedIndex].text;
+        selectedProtocolDrugs = allProtocols.find(p => p.id === sel.value).drugs;
+        document.getElementById("carboplatinAucGroup").style.display = selectedProtocolDrugs.includes("carboplatin") ? "flex" : "none";
         goToScreen('screenPatientInfo');
-
-        if (protocolDrugs[selectedVal].includes("carboplatin")) {
-            document.getElementById("carboplatinAucGroup").style.display = "flex";
-        } else {
-            document.getElementById("carboplatinAucGroup").style.display = "none";
-        }
         calculateAndRender();
     }
 
-    // ----- CALCULATION LOGIC -----
     function calculateAndRender() {
-        const protocolVal = document.getElementById("protocolSelect").value;
-        if (!protocolVal) return;
-
-        const dosePercentage = parseFloat(document.getElementById("dosePercentage").value) || 1;
+        if(!selectedProtocolDrugs.length) return;
+        const dosePct = parseFloat(document.getElementById("dosePercentage").value) || 1;
         const w = parseFloat(document.getElementById("weight").value) || 0;
-        const hCm = parseFloat(document.getElementById("height").value) || 0;
+        const h = parseFloat(document.getElementById("height").value) || 0;
         const age = parseFloat(document.getElementById("age").value) || 0;
-        const gender = document.getElementById("gender").value;
-        let creat = parseFloat(document.getElementById("creatinine").value) || 0;
-        const crUnit = document.getElementById("creatinineUnit").value;
-        const aucVal = parseFloat(document.getElementById("carboplatinAucValue").value) || 5;
+        const isFemale = document.getElementById("gender").value === "female";
+        let creatInput = parseFloat(document.getElementById("creatinine").value) || 0;
+        let creatUmol = document.getElementById("creatinineUnit").value === "mg" ? creatInput * 88.4 : creatInput;
 
-        const hM = hCm / 100;
-        const bmi = hM > 0 ? w / (hM * hM) : 0;
-        const bsa = (w > 0 && hCm > 0) ? 0.007184 * Math.pow(w, 0.425) * Math.pow(hCm, 0.725) : 0;
+        const bsa = (w > 0 && h > 0) ? 0.007184 * Math.pow(w, 0.425) * Math.pow(h, 0.725) : 0;
+        let crcl = (creatUmol > 0 && age > 0 && w > 0) ? (((140 - age) * w) / (72 * (creatUmol / 88.4))) * (isFemale ? 0.85 : 1) : 0;
+        const targetAuc = parseFloat(document.getElementById("carboplatinAucValue").value) || 5;
 
-        let creatMgDl = crUnit === "umol" ? creat / 88.4 : creat;
-        let creatUmol = crUnit === "umol" ? creat : creat * 88.4;
-
-        let crcl = 0;
-        if (creatMgDl > 0 && age > 0 && w > 0) {
-            crcl = ((140 - age) * w) / (72 * creatMgDl);
-            if (gender === "female") crcl *= 0.85;
-        }
-        let crclCalvert = Math.min(crcl, 125);
-
-        document.getElementById("resBmi").innerText = bmi > 0 ? bmi.toFixed(2) + " kg/m²" : "-";
-        document.getElementById("resBsa").innerText = bsa > 0 ? bsa.toFixed(3) + " m²" : "-";
+        document.getElementById("resBmi").innerText = h > 0 ? (w / Math.pow(h/100, 2)).toFixed(2) : "-";
+        document.getElementById("resBsa").innerText = bsa > 0 ? bsa.toFixed(3) + " m2" : "-";
         document.getElementById("resCrcl").innerText = crcl > 0 ? crcl.toFixed(1) + " mL/min" : "-";
 
-        const drugs = protocolDrugs[protocolVal] || [];
         const tbody = document.getElementById("doseTableBody");
         tbody.innerHTML = "";
-        window.currentCalculatedDrugs = [];
+        window.drugResults = [];
 
-        drugs.forEach(key => {
+        selectedProtocolDrugs.forEach(key => {
             const cfg = drugConfigs[key];
-            let theoStr = "";
-            let exactDose = 0;
-            let defaultActual = 0;
+            let theoStr = "", actHtml = "";
+            let theoValText = "", actFormulaNote = "";
 
             if (cfg.type === "bsa") {
-                let minVal = Math.round(bsa * cfg.defaultDoseMin);
-                let maxVal = Math.round(bsa * cfg.defaultDoseMax);
-                if (minVal === maxVal) {
-                    theoStr = `${minVal} mg (${cfg.defaultDoseMin}mg/m2)`;
-                } else {
-                    theoStr = `${minVal} - ${maxVal} mg (${cfg.defaultDoseMin}-${cfg.defaultDoseMax}mg/m2)`;
-                }
-                exactDose = minVal; // Use minimum standard as baseline for reduction
-                defaultActual = Math.round(exactDose * dosePercentage);
-            } else if (cfg.type === "calvert") {
-                exactDose = Math.round(aucVal * (crclCalvert + 25));
-                theoStr = `${exactDose} mg (AUC ${aucVal})`;
-                defaultActual = Math.round(exactDose * dosePercentage);
-            } else if (cfg.type === "fixed") {
-                exactDose = cfg.fixedDose;
-                theoStr = `${exactDose} mg (Liều cố định)`;
-                defaultActual = exactDose; // Do not apply % reduction to Immunotherapy automatically
+                let th = Math.round(bsa * cfg.dose);
+                if(cfg.dose < 5) th = (bsa * cfg.dose).toFixed(1);
+                theoStr = `${th} mg <br><small style="color:#64748b">(${cfg.formula})</small>`;
+                actHtml = `<input type="number" class="actual-dose-input" id="act_${key}" value="${Math.round(th * dosePct)}"> mg`;
+                
+                theoValText = `${th} mg (${cfg.formula})`;
+                actFormulaNote = `(${cfg.formula})`;
+                window.drugResults.push({ name: cfg.name, theoVal: theoValText, getActVal: () => `${document.getElementById(`act_${key}`).value} mg ${actFormulaNote}` });
+            } 
+            else if (cfg.type === "bsa_range") {
+                let minTh = Math.round(bsa * cfg.minDose);
+                theoStr = `${minTh} mg <br><small style="color:#64748b">(${cfg.formula})</small>`;
+                actHtml = `<input type="number" class="actual-dose-input" id="act_${key}" value="${Math.round(minTh * dosePct)}"> mg`;
+                
+                theoValText = `${minTh} mg (${cfg.formula})`;
+                actFormulaNote = `(${cfg.formula})`;
+                window.drugResults.push({ name: cfg.name, theoVal: theoValText, getActVal: () => `${document.getElementById(`act_${key}`).value} mg ${actFormulaNote}` });
+            } 
+            else if (cfg.type === "calvert_range") {
+                const cappedCrcl = Math.min(crcl, 125);
+                let carboDose = Math.round(targetAuc * (cappedCrcl + 25));
+                theoStr = `${carboDose} mg <br><small style="color:#64748b">(AUC ${targetAuc})</small>`;
+                actHtml = `<input type="number" class="actual-dose-input" id="act_${key}" value="${Math.round(carboDose * dosePct)}"> mg`;
+                
+                theoValText = `${carboDose} mg (AUC ${targetAuc})`;
+                actFormulaNote = `(AUC × (CrCl + 25))`;
+                window.drugResults.push({ name: cfg.name, theoVal: theoValText, getActVal: () => `${document.getElementById(`act_${key}`).value} mg ${actFormulaNote}` });
+            } 
+            else if (cfg.type === "fixed_bsa_tier") {
+                let singleDose = 40;
+                if(bsa >= 1.25 && bsa < 1.5) singleDose = 50;
+                else if(bsa >= 1.5) singleDose = 60;
+                theoStr = `${singleDose} mg x 2 lần/ngày <br><small style="color:#64748b">(Liều theo BSA)</small>`;
+                actHtml = `<input type="number" class="actual-dose-input" id="act_${key}" value="${singleDose}"> mg (BID)`;
+                
+                theoValText = `${singleDose} mg (Liều theo BSA)`;
+                window.drugResults.push({ name: cfg.name, theoVal: theoValText, getActVal: () => `${document.getElementById(`act_${key}`).value} mg (Uống 2 lần/ngày)` });
+            }
+            else if (cfg.type === "fixed") {
+                const unit = key === 'bleomycin' ? 'UI' : 'mg';
+                theoStr = `${cfg.dose} ${unit} (Cố định)`;
+                actHtml = `<input type="number" class="actual-dose-input" id="act_${key}" value="${cfg.dose}"> ${unit}`;
+                
+                theoValText = `${cfg.dose} ${unit} (${cfg.formula})`;
+                window.drugResults.push({ name: cfg.name, theoVal: theoValText, getActVal: () => `${document.getElementById(`act_${key}`).value} ${unit} (${cfg.formula})` });
+            }
+            else if (cfg.type === "weight") {
+                let th = Math.round(w * cfg.weightMul);
+                theoStr = `${th} mg <br><small style="color:#64748b">(${cfg.formula})</small>`;
+                actHtml = `<input type="number" class="actual-dose-input" id="act_${key}" value="${Math.round(th * dosePct)}"> mg`;
+                
+                theoValText = `${th} mg (${cfg.formula})`;
+                actFormulaNote = `(${cfg.formula})`;
+                window.drugResults.push({ name: cfg.name, theoVal: theoValText, getActVal: () => `${document.getElementById(`act_${key}`).value} mg ${actFormulaNote}` });
             }
 
-            window.currentCalculatedDrugs.push({ key, name: cfg.name, formula: cfg.formulaDesc, theoStr, defaultActual, dilution: cfg.dilution, infusionRate: cfg.infusionRate });
-
-            let tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td><strong>${cfg.name}</strong></td>
-                <td>${cfg.formulaDesc}</td>
-                <td>${theoStr}</td>
-                <td><input type="number" class="actual-dose-input" id="actual_${key}" value="${defaultActual}" oninput="updateSummaryText()"> mg</td>
-                <td>
-                    <div style="font-size: 0.85rem; margin-bottom: 4px;"><strong>Cách pha:</strong> ${cfg.dilution}</div>
-                    <div style="font-size: 0.85rem; color: #0369a1;"><strong>Hướng dẫn:</strong> ${cfg.infusionRate}</div>
-                </td>
-            `;
-            tbody.appendChild(tr);
+            tbody.innerHTML += `<tr><td><strong>${cfg.name}</strong><br><small style="color:#64748b">${cfg.schedule}</small></td><td>${cfg.formula}</td><td>${theoStr}</td><td>${actHtml}</td><td><small>${cfg.dilution}</small></td></tr>`;
         });
-
         updateSummaryText();
     }
 
     function updateSummaryText() {
-        const select = document.getElementById("protocolSelect");
-        const protocolTitleText = select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : "HÓA TRỊ";
+        // Tinh giản tên phác đồ
+        let rawTitle = document.getElementById("selectedProtocolDisplay").innerText;
+        let title = rawTitle.replace(/\s*\(Phác đồ [^)]+\)/gi, "").replace(/^[A-Z0-9\s-]+\:\s*/i, "").trim();
         
         const cycle = document.getElementById("cycleNumber").value;
         const dosePct = document.getElementById("dosePercentage").value;
-        let pctText = dosePct === "1" ? "" : ` (Giảm liều còn ${parseFloat(dosePct) * 100}%)`;
+        let pctText = dosePct === "1" ? "" : ` (Giảm liều còn ${Math.round(parseFloat(dosePct) * 100)}%)`;
 
-        const w = document.getElementById("weight").value;
-        const hM = (parseFloat(document.getElementById("height").value) / 100).toFixed(2);
-        const bmi = parseFloat(document.getElementById("resBmi").innerText) || 0;
-        const bsa = parseFloat(document.getElementById("resBsa").innerText) || 0;
-        const crclText = document.getElementById("resCrcl").innerText;
-        const creat = document.getElementById("creatinine").value;
-        const crUnit = document.getElementById("creatinineUnit").value;
-        let creatUmolVal = crUnit === "umol" ? creat : Math.round(creat * 88.4);
+        const w = parseFloat(document.getElementById("weight").value) || 0;
+        const h = parseFloat(document.getElementById("height").value) || 0;
+        const hMeter = (h / 100).toFixed(2);
+        const age = parseFloat(document.getElementById("age").value) || 0;
+        const isFemale = document.getElementById("gender").value === "female";
+        let creatInput = parseFloat(document.getElementById("creatinine").value) || 0;
+        const creatUnit = document.getElementById("creatinineUnit").value === "mg" ? "mg/dL" : "micromol/l";
+        let creatUmol = document.getElementById("creatinineUnit").value === "mg" ? creatInput * 88.4 : creatInput;
 
-        let text = `PHÁC ĐỒ: ${protocolTitleText.toUpperCase()} - CHU KỲ ${cycle}${pctText}\n\n`;
+        const bsa = (w > 0 && h > 0) ? 0.007184 * Math.pow(w, 0.425) * Math.pow(h, 0.725) : 0;
+        const bmi = h > 0 ? (w / Math.pow(h/100, 2)) : 0;
+        let crcl = (creatUmol > 0 && age > 0 && w > 0) ? (((140 - age) * w) / (72 * (creatUmol / 88.4))) * (isFemale ? 0.85 : 1) : 0;
 
+        // TẠO CHUỖI VĂN BẢN CHUẨN XUẤT HIS
+        let text = `PHÁC ĐỒ: ${title.toUpperCase()} - CHU KỲ ${cycle}${pctText}\n\n`;
         text += `W: ${w} kg\n`;
-        text += `H: ${hM} m\n`;
+        text += `H: ${hMeter} m\n`;
         text += `BMI: ${bmi.toFixed(2)} kg/m2\n`;
         text += `BSA: ${bsa.toFixed(3)} m2\n`;
-        text += `Creatinin: ${creatUmolVal} micromol/l\n`;
-        text += `CrCl (Cockcroft-Gault): ${crclText}\n\n`;
+        text += `Creatinin: ${creatInput} ${creatUnit}\n`;
+        text += `CrCl (Cockcroft-Gault): ${crcl.toFixed(1)} mL/min\n\n`;
 
-        text += "Liều lý thuyết :\n";
-        if (window.currentCalculatedDrugs) {
-            window.currentCalculatedDrugs.forEach(item => { text += `-${item.name} : ${item.theoStr}\n`; });
+        text += `Liều lý thuyết :\n`;
+        if(window.drugResults) {
+            window.drugResults.forEach(item => { text += `-${item.name} : ${item.theoVal}\n`; });
         }
 
-        text += "Liều thực dùng:\n";
-        if (window.currentCalculatedDrugs) {
-            window.currentCalculatedDrugs.forEach(item => {
-                const inputVal = document.getElementById(`actual_${item.key}`) ? document.getElementById(`actual_${item.key}`).value : item.defaultActual;
-                text += `-${item.name}: ${inputVal} mg  (${item.formula})\n`;
-            });
+        text += `Liều thực dùng:\n`;
+        if(window.drugResults) {
+            window.drugResults.forEach(item => { text += `-${item.name}: ${item.getActVal()}\n`; });
         }
 
-        const clinicalState = document.getElementById("clinicalState").value;
-        const heartExam = document.getElementById("heartExam").value;
-        const lungExam = document.getElementById("lungExam").value;
-        const abdomenExam = document.getElementById("abdomenExam").value;
-        const conclusionExam = document.getElementById("conclusionExam").value;
-
-        text += `\n${clinicalState}\n`;
-        text += `- ${heartExam}\n`;
-        text += `- ${lungExam}\n`;
-        text += `- ${abdomenExam}\n`;
-        text += `${conclusionExam}`;
+        text += `\nbệnh nhân tỉnh, không sốt, không khó thở, thể trạng trung bình\n`;
+        text += `- tim đều rõ\n`;
+        text += `- phổi không nghe ran\n`;
+        text += `- bụng mềm, gan lách không lớn\n`;
+        text += `Đủ khả năng điều trị`;
 
         document.getElementById("summaryTextOutput").innerText = text;
     }
-
-    function copySummaryText() {
-        const text = document.getElementById("summaryTextOutput").innerText;
-        navigator.clipboard.writeText(text).then(() => {
-            alert("Đã sao chép nội dung y lệnh vào bộ nhớ tạm!");
-        }).catch(err => { console.error('Không thể sao chép: ', err); });
-    }
 </script>
-
 </body>
 </html>
